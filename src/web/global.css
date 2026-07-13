@@ -1,3 +1,7 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body {
   background: #0D0D0F;
   margin: 0;

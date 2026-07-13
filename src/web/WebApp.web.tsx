@@ -187,6 +187,7 @@ const s: Record<string, React.CSSProperties> = {
   content: {
     flex: 1,
     minHeight: 0,
+    boxSizing: 'border-box',
     padding: 24,
     overflowY: 'auto',
     WebkitOverflowScrolling: 'touch',
