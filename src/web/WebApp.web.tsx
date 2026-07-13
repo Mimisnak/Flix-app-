@@ -4,7 +4,9 @@ import './global.css';
 import { supabase } from '../lib/supabase';
 import { requestWebNotificationPermission } from '../lib/webNotify';
 import { colors, SIDEBAR_WIDTH, TOPBAR_HEIGHT } from './theme';
+import { useIsMobile } from './hooks/useIsMobile';
 import Sidebar, { WebScreen } from './components/Sidebar';
+import MobileTabBar, { MOBILE_TABBAR_HEIGHT } from './components/MobileTabBar';
 import TopBar from './components/TopBar';
 // Shared
 import ProfileWeb from './screens/ProfileWeb';
@@ -84,6 +86,7 @@ function renderScreen(screen: WebScreen, role: Role) {
 export default function WebApp({ role }: Props) {
   const [activeScreen, setActiveScreen] = useState<WebScreen>(DEFAULT_SCREEN[role]);
   const userIdRef = useRef<string | null>(null);
+  const isMobile = useIsMobile();
 
   // Fetch userId once on mount
   useEffect(() => {
@@ -145,15 +148,23 @@ export default function WebApp({ role }: Props) {
 
   return (
     <div style={s.root}>
-      <Sidebar role={role} activeScreen={activeScreen} onNavigate={setActiveScreen} />
+      {!isMobile && <Sidebar role={role} activeScreen={activeScreen} onNavigate={setActiveScreen} />}
 
-      <div style={{ ...s.main, marginLeft: SIDEBAR_WIDTH }}>
-        <TopBar activeScreen={activeScreen} />
+      <div style={{ ...s.main, marginLeft: isMobile ? 0 : SIDEBAR_WIDTH }}>
+        <TopBar activeScreen={activeScreen} isMobile={isMobile} />
 
-        <div style={{ ...s.content, paddingTop: TOPBAR_HEIGHT }}>
+        <div
+          style={{
+            ...s.content,
+            paddingTop: TOPBAR_HEIGHT,
+            paddingBottom: isMobile ? MOBILE_TABBAR_HEIGHT + 16 : 24,
+          }}
+        >
           {renderScreen(activeScreen, role)}
         </div>
       </div>
+
+      {isMobile && <MobileTabBar role={role} activeScreen={activeScreen} onNavigate={setActiveScreen} />}
     </div>
   );
 }

@@ -24,11 +24,13 @@ const SCREEN_TITLES: Record<WebScreen, string> = {
 
 interface Props {
   activeScreen: WebScreen;
+  isMobile?: boolean;
 }
 
-export default function TopBar({ activeScreen }: Props) {
+export default function TopBar({ activeScreen, isMobile }: Props) {
+  const left = isMobile ? 0 : SIDEBAR_WIDTH;
   return (
-    <div style={{ ...s.bar, left: SIDEBAR_WIDTH, width: `calc(100% - ${SIDEBAR_WIDTH}px)`, height: TOPBAR_HEIGHT }}>
+    <div style={{ ...s.bar, left, width: `calc(100% - ${left}px)`, height: TOPBAR_HEIGHT }}>
       <span style={s.title}>{SCREEN_TITLES[activeScreen]}</span>
       <span style={s.betaBadge} title="Αν αντιμετωπίσεις πρόβλημα, ανέφερέ το στην Υποστήριξη">BETA</span>
     </div>

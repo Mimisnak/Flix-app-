@@ -54,7 +54,9 @@ interface Props {
   onNavigate: (screen: WebScreen) => void;
 }
 
-const NAV_BY_ROLE = {
+// Exported so MobileTabBar can reuse the exact same nav items on narrow
+// viewports instead of squeezing this sidebar into a phone-width screen.
+export const NAV_BY_ROLE = {
   owner: OWNER_NAV,
   shop: SHOP_NAV,
   driver: DRIVER_NAV,
