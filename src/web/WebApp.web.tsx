@@ -173,20 +173,22 @@ const s: Record<string, React.CSSProperties> = {
   root: {
     display: 'flex',
     width: '100vw',
-    minHeight: '100vh',
+    height: '100vh',
     background: colors.bg,
     fontFamily: '"Inter", "Segoe UI", sans-serif',
-    overflowX: 'hidden',
+    overflow: 'hidden',
   },
   main: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden',
+    minHeight: 0,
   },
   content: {
     flex: 1,
+    minHeight: 0,
     padding: 24,
     overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch',
   },
 };
