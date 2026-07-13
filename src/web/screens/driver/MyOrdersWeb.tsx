@@ -8,6 +8,8 @@ import { addOrderTimeline } from '../../../lib/orderHelpers';
 import { sendPushToUsers } from '../../../lib/notifications';
 import { colors } from '../../theme';
 import { Order } from '../../../types';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 const col = createColumnHelper<Order>();
 
@@ -150,6 +152,7 @@ export default function MyOrdersWeb() {
   ], [completeOrder, completingId]);
 
   const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -160,6 +163,45 @@ export default function MyOrdersWeb() {
           : `${orders.length} παραγγελίες σε εξέλιξη`}
       </div>
 
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : orders.length === 0 ? (
+            <div style={cardStyles.empty}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>🛵</div>
+              Δεν έχεις ενεργές παραγγελίες
+            </div>
+          ) : (
+            orders.map(item => {
+              const busy = completingId === item.id;
+              return (
+                <div key={item.id} style={cardStyles.card}>
+                  <div style={cardStyles.row}>
+                    <span style={cardStyles.title}>{item.street}</span>
+                  </div>
+                  {item.customer_name && <div style={cardStyles.detail}>👤 {item.customer_name}</div>}
+                  {item.phone && <div style={cardStyles.detail}>📞 {item.phone}</div>}
+                  {item.amount != null && <div style={cardStyles.amount}>💵 {item.amount.toFixed(2)}€</div>}
+                  <div style={cardStyles.meta}>🏬 {(item as any).shops?.name ?? '—'}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                    <button
+                      onClick={() => completeOrder(item.id, item.shop_id)}
+                      disabled={busy}
+                      style={{ ...s.completeBtn, flex: 1, opacity: busy ? 0.6 : 1 }}
+                    >
+                      {busy ? '...' : '✅ Παραδόθηκε'}
+                    </button>
+                    <button onClick={() => openIssueModal(item)} style={s.issueBtn}>
+                      ⚠️ Πρόβλημα
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -206,6 +248,7 @@ export default function MyOrdersWeb() {
           </tbody>
         </table>
       </div>
+      )}
 
       {issueOrder && (
         <div style={s.overlay}>

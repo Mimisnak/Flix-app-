@@ -7,6 +7,8 @@ import { supabase } from '../../../lib/supabase';
 import { colors } from '../../theme';
 import { DirectoryEntry } from '../../../types';
 import { isReallyOnline } from '../../../lib/onlineStatus';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 type Tab = 'shop' | 'driver';
 
@@ -194,6 +196,7 @@ export default function DirectoryWeb() {
   }, [tab, actionLoading]);
 
   const table = useReactTable({ data: filtered, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -261,6 +264,60 @@ export default function DirectoryWeb() {
         </div>
       )}
 
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : filtered.length === 0 ? (
+            <div style={cardStyles.empty}>Δεν υπάρχουν εγγραφές</div>
+          ) : (
+            filtered.map(entry => {
+              const isLoading = actionLoading === entry.id;
+              return (
+                <div key={entry.id} style={cardStyles.card}>
+                  <div style={cardStyles.row}>
+                    <span style={{ ...cardStyles.title, color: entry.active ? colors.textPrimary : colors.textSecondary }}>
+                      {entry.online_status ? '🟢' : '⚫'} {entry.name}
+                    </span>
+                    {!entry.active && <span style={s.inactiveBadge}>Ανενεργός</span>}
+                  </div>
+                  <div style={cardStyles.detail}>{entry.phone ?? '—'}</div>
+                  <div style={cardStyles.detail}>
+                    {entry.email ?? <span style={{ fontStyle: 'italic', color: colors.textMuted }}>Χωρίς λογαριασμό</span>}
+                  </div>
+                  {tab === 'driver' && entry.active && (
+                    <label style={{ ...s.switchWrap, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        type="checkbox"
+                        checked={entry.can_view_orders}
+                        onChange={() => toggleCanViewOrders(entry)}
+                        style={{ display: 'none' }}
+                      />
+                      <span style={{ ...s.switchTrack, background: entry.can_view_orders ? colors.primary : colors.border }}>
+                        <span style={{ ...s.switchThumb, transform: entry.can_view_orders ? 'translateX(16px)' : 'translateX(0)' }} />
+                      </span>
+                      <span style={{ fontSize: 12, color: colors.textSecondary }}>Βλέπει παραγγελίες</span>
+                    </label>
+                  )}
+                  <button
+                    onClick={() => toggleActive(entry)}
+                    disabled={isLoading}
+                    style={{
+                      ...s.actionBtn, marginTop: 10, width: '100%',
+                      background: entry.active ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
+                      color: entry.active ? colors.error : colors.success,
+                      border: `1px solid ${entry.active ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)'}`,
+                      opacity: isLoading ? 0.5 : 1,
+                    }}
+                  >
+                    {isLoading ? '...' : entry.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -301,6 +358,7 @@ export default function DirectoryWeb() {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

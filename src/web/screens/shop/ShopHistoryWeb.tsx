@@ -8,6 +8,8 @@ import { colors } from '../../theme';
 import { Order } from '../../../types';
 import StatusBadge from '../../components/StatusBadge';
 import { formatDurationBetween } from '../../../lib/orderHelpers';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 const col = createColumnHelper<Order>();
 
@@ -119,6 +121,7 @@ export default function ShopHistoryWeb() {
   ], []);
 
   const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -137,7 +140,49 @@ export default function ShopHistoryWeb() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* Orders */}
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : orders.length === 0 ? (
+            <div style={cardStyles.empty}>Δεν υπάρχουν παραγγελίες τις τελευταίες 24 ώρες</div>
+          ) : (
+            orders.map(o => {
+              const delivery = o.status === 'delivered' && o.delivered_at
+                ? { time: new Date(o.delivered_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' }), duration: formatDurationBetween(o.assigned_at ?? o.created_at, o.delivered_at) }
+                : null;
+              return (
+                <div key={o.id} style={cardStyles.card}>
+                  <div style={cardStyles.row}>
+                    <div>
+                      {o.created_by_owner && (
+                        <div style={{ fontSize: 11, color: colors.primary, fontWeight: 600, marginBottom: 3 }}>
+                          Ανατέθηκε από τον ιδιοκτήτη
+                        </div>
+                      )}
+                      <span style={cardStyles.title}>{o.street}</span>
+                    </div>
+                    <StatusBadge status={o.status} />
+                  </div>
+                  {o.customer_name && <div style={cardStyles.detail}>{o.customer_name}</div>}
+                  {o.phone && <div style={cardStyles.detail}>{o.phone}</div>}
+                  {(o as any).drivers?.name && <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>{(o as any).drivers.name}</div>}
+                  {delivery && (
+                    <div style={{ color: '#22C55E', marginTop: 4, fontSize: 12, fontWeight: 600 }}>
+                      {delivery.time} · διάρκεια {delivery.duration}
+                    </div>
+                  )}
+                  {o.cancel_reason && <div style={{ color: colors.textMuted, marginTop: 4, fontSize: 12 }}>{o.cancel_reason}</div>}
+                  <div style={cardStyles.meta}>
+                    {new Date(o.created_at).toLocaleString('el-GR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -183,6 +228,7 @@ export default function ShopHistoryWeb() {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

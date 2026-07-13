@@ -8,6 +8,8 @@ import {
 } from '@tanstack/react-table';
 import { supabase } from '../../../lib/supabase';
 import { colors } from '../../theme';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 interface DriverStat {
   id: string;
@@ -167,6 +169,7 @@ export default function StatsWeb() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
+  const isMobile = useIsMobile();
 
   if (loading) return <p style={{ color: colors.textSecondary, fontSize: 14 }}>Φόρτωση στατιστικών...</p>;
 
@@ -209,9 +212,31 @@ export default function StatsWeb() {
         />
       </div>
 
-      {/* Top Drivers Table */}
+      {/* Top Drivers */}
       <div>
         <h3 style={s.sectionTitle}>🏆 Κατάταξη Οδηγών</h3>
+        {isMobile ? (
+          <div style={cardStyles.list}>
+            {drivers.length === 0 ? (
+              <div style={cardStyles.empty}>Δεν υπάρχουν παραδόσεις ακόμα</div>
+            ) : (
+              drivers.map((d, i) => (
+                <div key={d.id} style={cardStyles.card}>
+                  <div style={cardStyles.row}>
+                    <span style={{ fontSize: 20 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</span>
+                    <span style={{ ...cardStyles.title, textAlign: 'right' }}>{d.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+                    <div style={{ flex: 1, background: colors.border, borderRadius: 4, height: 6 }}>
+                      <div style={{ width: `${(d.deliveries / maxDeliveries) * 100}%`, background: colors.primary, borderRadius: 4, height: '100%' }} />
+                    </div>
+                    <span style={{ color: colors.textPrimary, fontWeight: 600 }}>{d.deliveries}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
         <div style={s.tableWrap}>
           <table style={s.table}>
             <thead>
@@ -246,6 +271,7 @@ export default function StatsWeb() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {/* Shop Breakdown */}

@@ -8,6 +8,8 @@ import { colors } from '../../theme';
 import { Order } from '../../../types';
 import StatusBadge from '../../components/StatusBadge';
 import { notifyWeb } from '../../../lib/webNotify';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 const col = createColumnHelper<Order>();
 
@@ -141,6 +143,7 @@ export default function ShopOrdersWeb() {
   ], []);
 
   const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -165,7 +168,54 @@ export default function ShopOrdersWeb() {
         </div>
       </div>
 
-      {/* Orders table */}
+      {/* Orders */}
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : orders.length === 0 ? (
+            <div style={cardStyles.empty}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
+              Δεν υπάρχουν ενεργές παραγγελίες
+            </div>
+          ) : (
+            orders.map(item => (
+              <div key={item.id} style={cardStyles.card}>
+                <div style={cardStyles.row}>
+                  <div>
+                    {item.created_by_owner && (
+                      <div style={{ fontSize: 11, color: colors.primary, fontWeight: 600, marginBottom: 3 }}>
+                        Ανατέθηκε από τον ιδιοκτήτη
+                      </div>
+                    )}
+                    <span style={cardStyles.title}>{item.street}</span>
+                  </div>
+                  <StatusBadge status={item.status} />
+                </div>
+                {item.customer_name && <div style={cardStyles.detail}>Πελάτης: {item.customer_name}</div>}
+                {item.phone && <div style={cardStyles.detail}>Τηλέφωνο: {item.phone}</div>}
+                {item.amount != null && <div style={cardStyles.amount}>Ποσό: {item.amount.toFixed(2)}€</div>}
+                {(item as any).drivers?.name && (
+                  <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>
+                    Ντελιβεράς: {(item as any).drivers.name}
+                  </div>
+                )}
+                <div style={cardStyles.meta}>
+                  {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                {item.status === 'pending' && (
+                  <button
+                    onClick={() => { setCancelTarget(item); setCancelReason(''); }}
+                    style={{ ...s.cancelBtn, marginTop: 10, width: '100%' }}
+                  >
+                    ✕ Ακύρωση
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -207,6 +257,7 @@ export default function ShopOrdersWeb() {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* Cancel modal */}
       {cancelTarget && (

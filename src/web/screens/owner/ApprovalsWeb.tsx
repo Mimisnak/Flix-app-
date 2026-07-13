@@ -7,6 +7,8 @@ import {
 } from '@tanstack/react-table';
 import { supabase } from '../../../lib/supabase';
 import { colors } from '../../theme';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 interface PendingUser {
   id: string;
@@ -135,6 +137,7 @@ export default function ApprovalsWeb() {
   ], [actionLoading]);
 
   const table = useReactTable({ data: pending, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -152,7 +155,56 @@ export default function ApprovalsWeb() {
         )}
       </div>
 
-      {/* Table */}
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : pending.length === 0 ? (
+            <div style={cardStyles.empty}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+              Όλοι οι χρήστες έχουν εγκριθεί
+            </div>
+          ) : (
+            pending.map(user => {
+              const isLoading = actionLoading === user.id;
+              return (
+                <div key={user.id} style={cardStyles.card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={s.avatar}>{user.name.charAt(0).toUpperCase()}</div>
+                    <div>
+                      <strong style={{ color: colors.textPrimary, display: 'block' }}>{user.name}</strong>
+                      <span style={{ color: colors.textSecondary, fontSize: 12 }}>{user.email}</span>
+                    </div>
+                  </div>
+                  <span style={{
+                    ...s.roleBadge,
+                    background: user.role === 'shop' ? 'rgba(58,158,251,0.15)' : 'rgba(167,139,250,0.15)',
+                    color: user.role === 'shop' ? colors.primary : '#A78BFA',
+                  }}>
+                    {user.role === 'shop' ? '🏬 Μαγαζί' : '🛵 Ντελιβεράς'}
+                  </span>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <button
+                      onClick={() => approve(user.id)}
+                      disabled={isLoading}
+                      style={{ ...s.btn, flex: 1, background: 'rgba(34,197,94,0.15)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.4)', opacity: isLoading ? 0.5 : 1 }}
+                    >
+                      {isLoading ? '...' : '✓ Έγκριση'}
+                    </button>
+                    <button
+                      onClick={() => reject(user)}
+                      disabled={isLoading}
+                      style={{ ...s.btn, flex: 1, background: 'rgba(239,68,68,0.15)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.4)', opacity: isLoading ? 0.5 : 1 }}
+                    >
+                      {isLoading ? '...' : '✕ Απόρριψη'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -196,6 +248,7 @@ export default function ApprovalsWeb() {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

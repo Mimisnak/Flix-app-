@@ -8,6 +8,8 @@ import { colors } from '../../theme';
 import { AccountEntry, UserRole } from '../../../types';
 import { isReallyOnline } from '../../../lib/onlineStatus';
 import { accountDisplayName } from '../../../lib/accounts';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   owner: '👑 Διαχειριστής',
@@ -156,6 +158,7 @@ export default function AccountsWeb() {
   ], []);
 
   const table = useReactTable({ data: filtered, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -176,6 +179,44 @@ export default function AccountsWeb() {
         ))}
       </div>
 
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : filtered.length === 0 ? (
+            <div style={cardStyles.empty}>Δεν υπάρχουν λογαριασμοί</div>
+          ) : (
+            filtered.map(entry => (
+              <div key={entry.id} style={cardStyles.card}>
+                <div style={cardStyles.row}>
+                  <span style={cardStyles.title}>{entry.online_status ? '🟢' : '⚫'} {entry.name}</span>
+                  {!entry.active && <span style={s.inactiveBadge}>Ανενεργός</span>}
+                </div>
+                <div style={{ color: colors.primary, fontWeight: 600, fontSize: 13 }}>{ROLE_LABELS[entry.role]}</div>
+                <div style={cardStyles.detail}>
+                  {entry.email ?? <span style={{ fontStyle: 'italic', color: colors.textMuted }}>Χωρίς λογαριασμό</span>}
+                </div>
+                <div style={cardStyles.detail}>{entry.phone ?? '—'}</div>
+                <div style={cardStyles.detail}>
+                  {entry.approved ? 'Εγκεκριμένος ✓' : <span style={{ color: '#F59E0B' }}>⏳ Εκκρεμεί έγκριση</span>}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                  {(entry.role === 'shop' || entry.role === 'driver') && (
+                    <button style={s.actionBtnSecondary} onClick={() => openEdit(entry)}>✏️ Επεξεργασία</button>
+                  )}
+                  <button style={s.actionBtnSecondary} onClick={() => setRoleTarget(entry)}>🔁 Ρόλος</button>
+                  <button
+                    style={{ ...s.actionBtn, ...(entry.active ? s.deactivateBtn : s.activateBtn) }}
+                    onClick={() => toggleActive(entry)}
+                  >
+                    {entry.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -204,6 +245,7 @@ export default function AccountsWeb() {
           </tbody>
         </table>
       </div>
+      )}
 
       {roleTarget && (
         <div style={s.overlay} onClick={() => setRoleTarget(null)}>

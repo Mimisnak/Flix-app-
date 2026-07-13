@@ -9,6 +9,8 @@ import { sendPushToUsers } from '../../../lib/notifications';
 import { notifyWeb } from '../../../lib/webNotify';
 import { colors } from '../../theme';
 import { Order } from '../../../types';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 const col = createColumnHelper<Order>();
 
@@ -157,6 +159,7 @@ export default function AvailableOrdersWeb() {
   ], [takeOrder, takingId, userId]);
 
   const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -199,6 +202,54 @@ export default function AvailableOrdersWeb() {
               Είσαι εκτός βάρδιας. Βάλε "Σε βάρδια" για να δεις και να πάρεις παραγγελίες.
             </p>
           </div>
+        </div>
+      ) : isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : orders.length === 0 ? (
+            <div style={cardStyles.empty}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>🎉</div>
+              Δεν υπάρχουν διαθέσιμες παραγγελίες
+            </div>
+          ) : (
+            orders.map(item => {
+              const takenByMe = item.status === 'assigned' && item.driver_id === userId;
+              const takenByOther = item.status === 'assigned' && item.driver_id !== userId;
+              const busy = takingId === item.id;
+              return (
+                <div key={item.id} style={cardStyles.card}>
+                  <div style={cardStyles.row}>
+                    <span style={cardStyles.title}>{item.street}</span>
+                    <span style={{ color: colors.textSecondary, fontSize: 12, whiteSpace: 'nowrap' }}>
+                      {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  {item.customer_name && <div style={cardStyles.detail}>👤 {item.customer_name}</div>}
+                  {item.phone && <div style={cardStyles.detail}>📞 {item.phone}</div>}
+                  {item.amount != null && <div style={cardStyles.amount}>💵 {item.amount.toFixed(2)}€</div>}
+                  <div style={cardStyles.meta}>🏬 {(item as any).shops?.name ?? '—'}</div>
+                  {takenByOther ? (
+                    <div style={{ ...cardStyles.badge, background: 'rgba(148,163,184,0.12)', color: colors.textSecondary }}>
+                      🛵 Την έχει ο {(item as any).drivers?.name ?? 'άλλος οδηγός'}
+                    </div>
+                  ) : takenByMe ? (
+                    <div style={{ ...cardStyles.badge, background: colors.primaryHover, color: colors.primary }}>
+                      ✋ Δική σου
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => takeOrder(item.id, item.shop_id)}
+                      disabled={busy}
+                      style={{ ...s.takeBtn, marginTop: 10, width: '100%', opacity: busy ? 0.6 : 1 }}
+                    >
+                      {busy ? '...' : '✋ Παίρνω αυτή'}
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       ) : (
         <div style={s.tableWrap}>

@@ -13,6 +13,8 @@ import OrderDetailModalWeb from '../../components/OrderDetailModalWeb';
 import { ordersToCsv } from '../../../lib/csv';
 import { exportTextFile } from '../../../lib/exportFile';
 import { fetchAllPaginated, formatDurationBetween } from '../../../lib/orderHelpers';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 type HistoryOrder = Order & { shop_name: string; driver_name: string | null };
 type Period = '1h' | '24h' | '7d' | '30d' | '1y';
@@ -165,6 +167,7 @@ export default function HistoryWeb() {
   ], []);
 
   const table = useReactTable({ data: filtered, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   async function handleExport() {
     if (exporting || filtered.length === 0) return;
@@ -259,7 +262,44 @@ export default function HistoryWeb() {
         {loading ? 'Φόρτωση...' : `${filtered.length} αποτελέσματα`}
       </p>
 
-      {/* Table */}
+      {/* Orders */}
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {loading ? (
+            <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
+          ) : filtered.length === 0 ? (
+            <div style={cardStyles.empty}>Δεν βρέθηκαν παραγγελίες για αυτό το φίλτρο</div>
+          ) : (
+            filtered.map(o => {
+              const d = new Date(o.created_at);
+              const delivery = o.status === 'delivered' && o.delivered_at
+                ? { time: new Date(o.delivered_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' }), duration: formatDurationBetween(o.assigned_at ?? o.created_at, o.delivered_at) }
+                : null;
+              return (
+                <div key={o.id} style={cardStyles.card} onClick={() => setSelectedOrder(o)}>
+                  <div style={cardStyles.row}>
+                    <span style={cardStyles.title}>{o.street}</span>
+                    <StatusBadge status={o.status} />
+                  </div>
+                  <div style={cardStyles.detail}>🏬 {o.shop_name}</div>
+                  {o.customer_name && <div style={cardStyles.detail}>👤 {o.customer_name}</div>}
+                  {o.phone && <div style={cardStyles.detail}>📞 {o.phone}</div>}
+                  {o.driver_name && <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>🛵 {o.driver_name}</div>}
+                  {delivery && (
+                    <div style={{ color: '#22C55E', marginTop: 4, fontSize: 12, fontWeight: 600 }}>
+                      ✅ {delivery.time} · διάρκεια {delivery.duration}
+                    </div>
+                  )}
+                  {o.cancel_reason && <div style={{ color: '#EF4444', marginTop: 4, fontSize: 12 }}>❌ {o.cancel_reason}</div>}
+                  <div style={cardStyles.meta}>
+                    {d.toLocaleDateString('el-GR')} · {d.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -298,6 +338,7 @@ export default function HistoryWeb() {
           </tbody>
         </table>
       </div>
+      )}
 
       <OrderDetailModalWeb order={selectedOrder} onClose={() => setSelectedOrder(null)} />
     </div>

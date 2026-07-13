@@ -11,6 +11,8 @@ import { Order, Driver } from '../../../types';
 import StatusBadge from '../../components/StatusBadge';
 import { addOrderTimeline } from '../../../lib/orderHelpers';
 import { isReallyOnline } from '../../../lib/onlineStatus';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { cardStyles } from '../../components/cardStyles';
 
 type OrderRow = Order & { shop_name: string; driver_name: string | null };
 type DriverOption = Driver & { online: boolean };
@@ -139,6 +141,7 @@ export default function LiveOrdersWeb() {
   ], [drivers, assigning]);
 
   const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
+  const isMobile = useIsMobile();
 
   if (loading) {
     return <p style={{ color: colors.textSecondary, fontSize: 14 }}>Φόρτωση παραγγελιών...</p>;
@@ -154,7 +157,40 @@ export default function LiveOrdersWeb() {
         <Chip label={`${drivers.filter(d => d.online).length}/${drivers.length} Online Οδηγοί`} color="#A78BFA" />
       </div>
 
-      {/* Table */}
+      {/* Orders */}
+      {isMobile ? (
+        <div style={cardStyles.list}>
+          {orders.length === 0 ? (
+            <div style={cardStyles.empty}>✓ Δεν υπάρχουν ενεργές παραγγελίες</div>
+          ) : (
+            orders.map(item => (
+              <div key={item.id} style={cardStyles.card}>
+                <div style={cardStyles.row}>
+                  <span style={cardStyles.title}>{item.street}</span>
+                  <StatusBadge status={item.status} />
+                </div>
+                {item.customer_name && <div style={cardStyles.detail}>👤 {item.customer_name}</div>}
+                {item.phone && <div style={cardStyles.detail}>📞 {item.phone}</div>}
+                <div style={cardStyles.meta}>🏬 {item.shop_name}</div>
+                {item.driver_name && <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>🛵 {item.driver_name}</div>}
+                <div style={cardStyles.meta}>
+                  {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <AssignCell
+                    order={item}
+                    drivers={drivers}
+                    isOpen={assigning === item.id}
+                    onOpen={() => setAssigning(item.id)}
+                    onClose={() => setAssigning(null)}
+                    onAssign={assignDriver}
+                  />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
       <div style={s.tableWrap}>
         <table style={s.table}>
           <thead>
@@ -195,6 +231,7 @@ export default function LiveOrdersWeb() {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }
