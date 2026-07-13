@@ -648,5 +648,154 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_open_order BOOLEAN DEFAULT false;
 
 
 -- ============================================================
+-- STEP 19: SECURITY FIX — tighten RLS on orders/customers/order_timeline.
+-- These previously only checked "is this caller logged in at all"
+-- (auth.role() = 'authenticated'), with no check on WHICH account or
+-- whether it's even approved yet. That was a low-severity gap while the
+-- app was native-app-only; now that the web dashboard is a public site
+-- with a visible "Δημιουργία Λογαριασμού" button, any freshly
+-- self-registered (still-unapproved) account could call the Supabase API
+-- directly — bypassing the app's own UI entirely — and read every
+-- customer's name/phone/address, every order, or edit/delete them.
+-- Every existing screen's actual query patterns were audited (shop/owner
+-- own-shop scoping, driver own-order + browse-available scoping, owner/
+-- developer full access) so this should not change behavior for any
+-- legitimate use — only close off direct-API access to other accounts'
+-- data.
+-- ============================================================
+
+-- ORDERS
+DROP POLICY IF EXISTS "Anyone authenticated can manage orders" ON orders;
+DROP POLICY IF EXISTS "Orders are visible to their shop, driver, browsing drivers, or staff" ON orders;
+DROP POLICY IF EXISTS "Shops create their own orders, staff create for any shop" ON orders;
+DROP POLICY IF EXISTS "Orders are editable by their shop, driver, browsing drivers, or staff" ON orders;
+DROP POLICY IF EXISTS "Only staff can delete orders" ON orders;
+
+CREATE POLICY "Orders are visible to their shop, driver, browsing drivers, or staff"
+  ON orders FOR SELECT USING (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR (
+      status IN ('pending', 'assigned')
+      AND EXISTS (
+        SELECT 1 FROM users
+        WHERE id = auth.uid() AND role = 'driver' AND active AND can_view_orders
+      )
+    )
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+CREATE POLICY "Shops create their own orders, staff create for any shop"
+  ON orders FOR INSERT WITH CHECK (
+    shop_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+CREATE POLICY "Orders are editable by their shop, driver, browsing drivers, or staff"
+  ON orders FOR UPDATE USING (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR (
+      driver_id IS NULL AND status = 'pending'
+      AND EXISTS (
+        SELECT 1 FROM users
+        WHERE id = auth.uid() AND role = 'driver' AND active AND can_view_orders
+      )
+    )
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  ) WITH CHECK (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+CREATE POLICY "Only staff can delete orders"
+  ON orders FOR DELETE USING (
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+
+-- CUSTOMERS — no driver ever needs these; only the owning shop + staff.
+DROP POLICY IF EXISTS "Anyone authenticated can manage customers" ON customers;
+DROP POLICY IF EXISTS "Customers are visible to their shop or staff" ON customers;
+DROP POLICY IF EXISTS "Customers are editable by their shop or staff" ON customers;
+
+CREATE POLICY "Customers are visible to their shop or staff"
+  ON customers FOR SELECT USING (
+    shop_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+CREATE POLICY "Customers are editable by their shop or staff"
+  ON customers FOR ALL USING (
+    shop_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  ) WITH CHECK (
+    shop_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+
+-- ORDER_TIMELINE — visible/writable only to the order's own shop/driver, or staff.
+DROP POLICY IF EXISTS "Anyone authenticated can manage timeline" ON order_timeline;
+DROP POLICY IF EXISTS "Order timeline follows the same order's access" ON order_timeline;
+
+CREATE POLICY "Order timeline follows the same order's access"
+  ON order_timeline FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM orders o
+      WHERE o.id = order_timeline.order_id
+        AND (o.shop_id = auth.uid() OR o.driver_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  ) WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM orders o
+      WHERE o.id = order_timeline.order_id
+        AND (o.shop_id = auth.uid() OR o.driver_id = auth.uid())
+    )
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+
+-- ============================================================
+-- STEP 20: SECURITY FIX — self-approval / self-promotion via direct API.
+-- "Users can update own record" (STEP 3) lets any account update ANY
+-- column on its own row, including approved/active/role/can_view_orders —
+-- meaning a freshly self-registered shop/driver could call the API
+-- directly and set approved = true on themselves, completely bypassing
+-- the Approvals screen. This trigger silently reverts those four columns
+-- to their previous value whenever the request isn't from an existing
+-- owner/developer (or from the Supabase SQL editor / service role, where
+-- auth.uid() is null) — legitimate self-updates like online_status,
+-- last_seen_at, and push_token are untouched.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.protect_privileged_user_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer')
+  ) THEN
+    NEW.approved := OLD.approved;
+    NEW.active := OLD.active;
+    NEW.role := OLD.role;
+    NEW.can_view_orders := OLD.can_view_orders;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS protect_privileged_user_fields_trigger ON users;
+CREATE TRIGGER protect_privileged_user_fields_trigger
+  BEFORE UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION public.protect_privileged_user_fields();
+
+
+-- ============================================================
 -- END
 -- ============================================================
