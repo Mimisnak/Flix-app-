@@ -797,5 +797,29 @@ CREATE TRIGGER protect_privileged_user_fields_trigger
 
 
 -- ============================================================
+-- STEP 21: SECURITY FIX — stop exposing every account's email to every
+-- other logged-in account. "Anyone authenticated can read users" meant
+-- any shop/driver could query the users table directly and read every
+-- other account's email address (plus push_token). Audited every actual
+-- read of the users table in the app: shop/driver screens ONLY ever read
+-- their OWN row (.eq('id', user.id)); only owner/developer screens
+-- (Approvals, Directory, Accounts, Support Inbox) read OTHER accounts'
+-- rows — so this can be locked down to "own row, or staff see all" with
+-- no legitimate feature affected. (shops/drivers tables are untouched —
+-- those ARE needed broadly, e.g. a driver browsing orders from every shop
+-- needs every shop's name.)
+-- ============================================================
+
+DROP POLICY IF EXISTS "Anyone authenticated can read users" ON users;
+DROP POLICY IF EXISTS "Users can read own row or staff can read all" ON users;
+
+CREATE POLICY "Users can read own row or staff can read all"
+  ON users FOR SELECT USING (
+    auth.uid() = id
+    OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'))
+  );
+
+
+-- ============================================================
 -- END
 -- ============================================================
