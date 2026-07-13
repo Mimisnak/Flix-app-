@@ -11,6 +11,7 @@ import TopBar from './components/TopBar';
 // Shared
 import ProfileWeb from './screens/ProfileWeb';
 import SupportChatWeb from './screens/SupportChatWeb';
+import HelpWeb from './screens/HelpWeb';
 // Owner
 import LiveOrdersWeb from './screens/owner/LiveOrdersWeb';
 import MapWeb from './screens/owner/MapWeb';
@@ -48,6 +49,7 @@ const DEFAULT_SCREEN: Record<Role, WebScreen> = {
 
 function renderScreen(screen: WebScreen, role: Role) {
   if (screen === 'profile') return <ProfileWeb role={role} />;
+  if (screen === 'help') return <HelpWeb role={role} />;
   if (screen === 'support' && role !== 'developer') return <SupportChatWeb />;
 
   if (role === 'owner') {

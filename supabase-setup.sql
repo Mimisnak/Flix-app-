@@ -821,5 +821,21 @@ CREATE POLICY "Users can read own row or staff can read all"
 
 
 -- ============================================================
+-- STEP 22: Let a developer delete a whole support conversation, so the
+-- inbox doesn't fill up forever with resolved threads. No DELETE policy
+-- existed at all for support_messages before this (RLS denies by default
+-- with no matching policy), so nobody — not even a developer — could
+-- delete a thread from the client.
+-- ============================================================
+
+DROP POLICY IF EXISTS "Developer can delete support threads" ON support_messages;
+
+CREATE POLICY "Developer can delete support threads"
+  ON support_messages FOR DELETE USING (
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'developer')
+  );
+
+
+-- ============================================================
 -- END
 -- ============================================================

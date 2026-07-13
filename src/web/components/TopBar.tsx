@@ -20,6 +20,7 @@ const SCREEN_TITLES: Record<WebScreen, string> = {
   'dev-inbox': 'Υποστήριξη — Εισερχόμενα',
   'dev-accounts': 'Λογαριασμοί',
   'profile': 'Προφίλ',
+  'help': 'Οδηγός Χρήσης',
 };
 
 interface Props {

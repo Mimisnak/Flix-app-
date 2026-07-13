@@ -10,6 +10,7 @@ const ITEMS: { label: string; icon: string; route: string }[] = [
   { label: 'Συνδρομή', icon: '💳', route: 'OwnerSubscription' },
   { label: 'Υποστήριξη', icon: '🎧', route: 'OwnerSupport' },
   { label: 'Προφίλ', icon: '👤', route: 'OwnerProfile' },
+  { label: 'Οδηγός Χρήσης', icon: '📖', route: 'Help' },
 ];
 
 export default function MoreScreen() {

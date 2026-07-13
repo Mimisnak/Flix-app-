@@ -6,6 +6,7 @@ import { Colors } from '../../constants/colors';
 const ITEMS: { label: string; icon: string; route: string }[] = [
   { label: 'Στατιστικά', icon: '📊', route: 'DevStats' },
   { label: 'Προφίλ', icon: '👤', route: 'DevProfile' },
+  { label: 'Οδηγός Χρήσης', icon: '📖', route: 'Help' },
 ];
 
 export default function MoreScreen() {

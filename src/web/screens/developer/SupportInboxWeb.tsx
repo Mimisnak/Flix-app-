@@ -63,6 +63,13 @@ export default function SupportInboxWeb() {
     return () => { supabase.removeChannel(channel); };
   }, [load]);
 
+  async function deleteThread(thread: Thread) {
+    if (!window.confirm(`Θα διαγραφούν όλα τα μηνύματα με ${thread.name}. Αυτή η ενέργεια δεν αναιρείται.`)) return;
+    await supabase.from('support_messages').delete().eq('user_id', thread.userId);
+    if (selected?.userId === thread.userId) setSelected(null);
+    load();
+  }
+
   return (
     <div style={s.layout}>
       <div style={s.threadList}>
@@ -77,7 +84,16 @@ export default function SupportInboxWeb() {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={s.threadName}>{t.name}</span>
-                {t.unread > 0 && <span style={s.unreadBadge}>{t.unread}</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {t.unread > 0 && <span style={s.unreadBadge}>{t.unread}</span>}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteThread(t); }}
+                    style={s.deleteBtn}
+                    title="Διαγραφή συνομιλίας"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
               <div style={s.threadRole}>{ROLE_LABELS[t.role] ?? t.role}</div>
               <div style={s.threadPreview}>{t.lastMessage}</div>
@@ -89,7 +105,7 @@ export default function SupportInboxWeb() {
 
       <div style={s.chatPane}>
         {selected ? (
-          <ThreadChat key={selected.userId} thread={selected} onSent={load} />
+          <ThreadChat key={selected.userId} thread={selected} onSent={load} onDelete={() => deleteThread(selected)} />
         ) : (
           <div style={s.emptyChat}>Διάλεξε μια συνομιλία από αριστερά</div>
         )}
@@ -98,7 +114,7 @@ export default function SupportInboxWeb() {
   );
 }
 
-function ThreadChat({ thread, onSent }: { thread: Thread; onSent: () => void }) {
+function ThreadChat({ thread, onSent, onDelete }: { thread: Thread; onSent: () => void; onDelete: () => void }) {
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -146,11 +162,14 @@ function ThreadChat({ thread, onSent }: { thread: Thread; onSent: () => void }) 
 
   return (
     <>
-      <div style={s.chatHeader}>
-        <strong style={{ color: colors.textPrimary }}>{thread.name}</strong>
-        <span style={{ color: colors.textSecondary, fontSize: 12, marginLeft: 8 }}>
-          {ROLE_LABELS[thread.role] ?? thread.role}
-        </span>
+      <div style={{ ...s.chatHeader, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <strong style={{ color: colors.textPrimary }}>{thread.name}</strong>
+          <span style={{ color: colors.textSecondary, fontSize: 12, marginLeft: 8 }}>
+            {ROLE_LABELS[thread.role] ?? thread.role}
+          </span>
+        </div>
+        <button onClick={onDelete} style={s.deleteBtn} title="Διαγραφή συνομιλίας">🗑️</button>
       </div>
       <div style={s.messages}>
         {messages.map(m => (
@@ -198,6 +217,9 @@ const s: Record<string, React.CSSProperties> = {
   unreadBadge: {
     background: '#EF4444', color: '#fff', borderRadius: 10, fontSize: 11, fontWeight: 700,
     minWidth: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
+  },
+  deleteBtn: {
+    background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 15, padding: 2,
   },
   chatPane: {
     flex: 1, display: 'flex', flexDirection: 'column',

@@ -12,6 +12,7 @@ import OwnerNewOrderScreen from '../screens/owner/OwnerNewOrderScreen';
 import MoreScreen from '../screens/owner/MoreScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SupportChatScreen from '../screens/SupportChatScreen';
+import HelpScreen from '../screens/HelpScreen';
 import BetaBadge from '../components/BetaBadge';
 
 const Tab = createBottomTabNavigator();
@@ -86,6 +87,7 @@ export default function OwnerNavigator() {
       <Tab.Screen name="OwnerNewOrder" component={OwnerNewOrderScreen} options={{ title: 'Νέα Παραγγελία', ...hidden }} />
       <Tab.Screen name="OwnerSupport" component={SupportChatScreen} options={{ title: 'Υποστήριξη', ...hidden }} />
       <Tab.Screen name="OwnerProfile" component={ProfileScreen} options={{ title: 'Προφίλ', ...hidden }} />
+      <Tab.Screen name="Help" component={HelpScreen} options={{ title: 'Οδηγός Χρήσης', ...hidden }} />
     </Tab.Navigator>
   );
 }

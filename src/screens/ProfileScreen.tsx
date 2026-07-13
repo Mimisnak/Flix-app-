@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
+import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { Colors } from '../constants/colors';
 
@@ -18,6 +19,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function ProfileScreen() {
   const headerHeight = useHeaderHeight();
+  const navigation = useNavigation<any>();
   const [role, setRole] = useState<string>('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -194,6 +196,14 @@ export default function ProfileScreen() {
         </View>
 
         <TouchableOpacity
+          style={styles.helpBtn}
+          onPress={() => navigation.navigate('Help')}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.helpText}>📖 Οδηγός Χρήσης</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.signOutBtn, signingOut && styles.btnDisabled]}
           onPress={handleSignOut}
           disabled={signingOut}
@@ -234,8 +244,14 @@ const styles = StyleSheet.create({
   btnSecondary: { backgroundColor: Colors.purple },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  helpBtn: {
+    marginHorizontal: 12, marginTop: 16, padding: 14, borderRadius: 10,
+    alignItems: 'center', borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  helpText: { color: Colors.textPrimary, fontWeight: 'bold', fontSize: 15 },
   signOutBtn: {
-    marginHorizontal: 12, marginTop: 4, padding: 14, borderRadius: 10,
+    marginHorizontal: 12, marginTop: 10, padding: 14, borderRadius: 10,
     alignItems: 'center', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.4)',
     backgroundColor: 'rgba(239, 68, 68, 0.08)',
   },

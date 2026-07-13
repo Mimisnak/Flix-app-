@@ -7,9 +7,18 @@ import DriverHistoryScreen from '../screens/driver/DriverHistoryScreen';
 import MapScreen from '../screens/owner/MapScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SupportChatScreen from '../screens/SupportChatScreen';
+import HelpScreen from '../screens/HelpScreen';
 import BetaBadge from '../components/BetaBadge';
 
 const Tab = createBottomTabNavigator();
+
+// Help is reachable from the Profile screen's link, not from the tab bar —
+// there's no spare room in a 6-tab bar. Same tabBarButton: () => null
+// pattern used for hidden screens in OwnerNavigator/DeveloperNavigator.
+const hidden = {
+  tabBarButton: () => null,
+  tabBarItemStyle: { width: 0, flex: 0, padding: 0, margin: 0 },
+};
 
 const icon = (emoji: string) => () => <Text style={{ fontSize: 24 }}>{emoji}</Text>;
 
@@ -62,6 +71,9 @@ export default function DriverNavigator() {
         component={ProfileScreen}
         options={{ title: 'Προφίλ', tabBarIcon: icon('👤') }}
       />
+
+      {/* Hidden from the tab bar, reachable from the Profile screen's link */}
+      <Tab.Screen name="Help" component={HelpScreen} options={{ title: 'Οδηγός Χρήσης', ...hidden }} />
     </Tab.Navigator>
   );
 }

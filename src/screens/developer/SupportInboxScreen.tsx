@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, FlatList, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
@@ -69,6 +69,24 @@ export default function SupportInboxScreen() {
     return () => { supabase.removeChannel(channel); };
   }, [load]);
 
+  function deleteThread(thread: Thread) {
+    Alert.alert(
+      'Διαγραφή συνομιλίας',
+      `Θα διαγραφούν όλα τα μηνύματα με ${thread.name}. Αυτή η ενέργεια δεν αναιρείται.`,
+      [
+        { text: 'Ακύρωση', style: 'cancel' },
+        {
+          text: 'Διαγραφή',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.from('support_messages').delete().eq('user_id', thread.userId);
+            load();
+          },
+        },
+      ]
+    );
+  }
+
   if (openThread) {
     return <ThreadDetail thread={openThread} onBack={() => { setOpenThread(null); load(); }} />;
   }
@@ -102,6 +120,13 @@ export default function SupportInboxScreen() {
                 <Text style={styles.preview} numberOfLines={1}>{item.lastMessage}</Text>
               </View>
               <Text style={styles.time}>{formatOrderDateTime(item.lastAt)}</Text>
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => deleteThread(item)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.deleteBtnText}>🗑️</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
           )}
         />
@@ -111,6 +136,24 @@ export default function SupportInboxScreen() {
 }
 
 function ThreadDetail({ thread, onBack }: { thread: Thread; onBack: () => void }) {
+  function handleDelete() {
+    Alert.alert(
+      'Διαγραφή συνομιλίας',
+      `Θα διαγραφούν όλα τα μηνύματα με ${thread.name}. Αυτή η ενέργεια δεν αναιρείται.`,
+      [
+        { text: 'Ακύρωση', style: 'cancel' },
+        {
+          text: 'Διαγραφή',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.from('support_messages').delete().eq('user_id', thread.userId);
+            onBack();
+          },
+        },
+      ]
+    );
+  }
+
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -152,9 +195,14 @@ function ThreadDetail({ thread, onBack }: { thread: Thread; onBack: () => void }
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={90}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Text style={styles.backBtnText}>← Πίσω</Text>
-          </TouchableOpacity>
+          <View style={styles.threadDetailTopRow}>
+            <TouchableOpacity onPress={onBack} style={styles.backBtn}>
+              <Text style={styles.backBtnText}>← Πίσω</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleDelete}>
+              <Text style={styles.deleteBtnText}>🗑️</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.headerTitle}>{thread.name}</Text>
           <Text style={styles.headerSub}>{ROLE_LABELS[thread.role] ?? thread.role}</Text>
         </View>
@@ -206,7 +254,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: Colors.textPrimary, fontSize: 17, fontWeight: 'bold' },
   headerSub: { color: Colors.textSecondary, fontSize: 12, marginTop: 4 },
-  backBtn: { marginBottom: 8 },
+  threadDetailTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  backBtn: {},
   backBtnText: { color: Colors.primary, fontSize: 14, fontWeight: '600' },
   empty: { textAlign: 'center', color: Colors.textSecondary, marginTop: 40, fontSize: 14 },
   row: {
@@ -224,6 +273,8 @@ const styles = StyleSheet.create({
   roleLabel: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
   preview: { color: Colors.textSecondary, fontSize: 13, marginTop: 4 },
   time: { color: Colors.textMuted, fontSize: 11, marginLeft: 8 },
+  deleteBtn: { marginLeft: 10, padding: 4 },
+  deleteBtnText: { fontSize: 18 },
   bubbleRow: { flexDirection: 'row', marginBottom: 10 },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '78%', borderRadius: 14, padding: 12 },

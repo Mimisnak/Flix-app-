@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { colors, SIDEBAR_WIDTH } from '../theme';
 
-export type OwnerScreen = 'live-orders' | 'map' | 'approvals' | 'directory' | 'subscription' | 'owner-new-order' | 'stats' | 'history' | 'support' | 'profile';
-export type ShopScreen = 'new-order' | 'orders' | 'map' | 'history' | 'subscription' | 'support' | 'profile';
-export type DriverScreen = 'available-orders' | 'my-orders' | 'map' | 'driver-history' | 'support' | 'profile';
-export type DeveloperScreen = 'dev-inbox' | 'dev-accounts' | 'live-orders' | 'stats' | 'history' | 'profile';
+export type OwnerScreen = 'live-orders' | 'map' | 'approvals' | 'directory' | 'subscription' | 'owner-new-order' | 'stats' | 'history' | 'support' | 'profile' | 'help';
+export type ShopScreen = 'new-order' | 'orders' | 'map' | 'history' | 'subscription' | 'support' | 'profile' | 'help';
+export type DriverScreen = 'available-orders' | 'my-orders' | 'map' | 'driver-history' | 'support' | 'profile' | 'help';
+export type DeveloperScreen = 'dev-inbox' | 'dev-accounts' | 'live-orders' | 'stats' | 'history' | 'profile' | 'help';
 export type WebScreen = OwnerScreen | ShopScreen | DriverScreen | DeveloperScreen;
 
 const OWNER_NAV: { label: string; screen: OwnerScreen; icon: string }[] = [
@@ -18,6 +18,7 @@ const OWNER_NAV: { label: string; screen: OwnerScreen; icon: string }[] = [
   { label: 'Ιστορικό', screen: 'history', icon: '🕑' },
   { label: 'Υποστήριξη', screen: 'support', icon: '🎧' },
   { label: 'Προφίλ', screen: 'profile', icon: '👤' },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
 ];
 
 const SHOP_NAV: { label: string; screen: ShopScreen; icon: string }[] = [
@@ -28,6 +29,7 @@ const SHOP_NAV: { label: string; screen: ShopScreen; icon: string }[] = [
   { label: 'Συνδρομή', screen: 'subscription', icon: '💳' },
   { label: 'Υποστήριξη', screen: 'support', icon: '🎧' },
   { label: 'Προφίλ', screen: 'profile', icon: '👤' },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
 ];
 
 const DRIVER_NAV: { label: string; screen: DriverScreen; icon: string }[] = [
@@ -37,6 +39,7 @@ const DRIVER_NAV: { label: string; screen: DriverScreen; icon: string }[] = [
   { label: 'Ιστορικό', screen: 'driver-history', icon: '🕑' },
   { label: 'Υποστήριξη', screen: 'support', icon: '🎧' },
   { label: 'Προφίλ', screen: 'profile', icon: '👤' },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
 ];
 
 const DEVELOPER_NAV: { label: string; screen: DeveloperScreen; icon: string }[] = [
@@ -46,6 +49,7 @@ const DEVELOPER_NAV: { label: string; screen: DeveloperScreen; icon: string }[] 
   { label: 'Στατιστικά', screen: 'stats', icon: '📊' },
   { label: 'Ιστορικό', screen: 'history', icon: '🕑' },
   { label: 'Προφίλ', screen: 'profile', icon: '👤' },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
 ];
 
 interface Props {
