@@ -34,6 +34,12 @@ yarn-error.*
 .env
 .env*.local
 
+# Firebase credentials — google-services.json is low-sensitivity but no
+# reason to publish it; *firebase-adminsdk*.json is a real secret and must
+# never be committed.
+google-services.json
+*firebase-adminsdk*.json
+
 # typescript
 *.tsbuildinfo
 
