@@ -124,7 +124,7 @@ export default function WelcomeScreen() {
           Η εφαρμογή διαχείρισης παραδόσεών σου
         </Text>
         <Text style={styles.betaNote}>
-          Beta έκδοση — αν αντιμετωπίσεις πρόβλημα, ανέφερέ το στην Υποστήριξη.
+          Beta έκδοση — αν αντιμετωπίσεις πρόβλημα, αναφέρετό στο support.
         </Text>
       </Animated.View>
     </View>

@@ -110,7 +110,7 @@ export default function RegisterScreen() {
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
 
         <Text style={styles.title}>Create Account</Text>
@@ -124,7 +124,6 @@ export default function RegisterScreen() {
             onPress={() => setRole('shop')}
             activeOpacity={0.7}
           >
-            <Text style={styles.roleEmoji}>🏬</Text>
             <Text style={[styles.roleText, role === 'shop' && styles.roleTextActive]}>
               Κατάστημα
             </Text>
@@ -134,7 +133,6 @@ export default function RegisterScreen() {
             onPress={() => setRole('driver')}
             activeOpacity={0.7}
           >
-            <Text style={styles.roleEmoji}>🛵</Text>
             <Text style={[styles.roleText, role === 'driver' && styles.roleTextActive]}>
               Ντελιβεράς
             </Text>
@@ -178,7 +176,7 @@ export default function RegisterScreen() {
           <Text style={styles.label}>Τηλέφωνο <Text style={styles.optional}>(προαιρετικό)</Text></Text>
           <View style={styles.inputWrap}>
             <View style={styles.prefixBox}>
-              <Text style={styles.prefixText}>🇬🇷 +30</Text>
+              <Text style={styles.prefixText}>+30</Text>
             </View>
             <TextInput
               style={[styles.input, { borderLeftWidth: 0 }]}
@@ -318,11 +316,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2A2A35',
   },
-  backIcon: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '600',
-  },
   title: {
     fontSize: 30,
     fontWeight: '800',
@@ -359,10 +352,6 @@ const styles = StyleSheet.create({
   roleBtnActive: {
     borderColor: Colors.primary,
     backgroundColor: Colors.primaryHover,
-  },
-  roleEmoji: {
-    fontSize: 24,
-    marginBottom: 6,
   },
   roleText: {
     fontSize: 13,
