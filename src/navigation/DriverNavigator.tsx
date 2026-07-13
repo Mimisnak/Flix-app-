@@ -1,0 +1,67 @@
+import React from 'react';
+import { Dimensions, Text } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AvailableOrdersScreen from '../screens/driver/AvailableOrdersScreen';
+import MyOrdersScreen from '../screens/driver/MyOrdersScreen';
+import DriverHistoryScreen from '../screens/driver/DriverHistoryScreen';
+import MapScreen from '../screens/owner/MapScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import SupportChatScreen from '../screens/SupportChatScreen';
+import BetaBadge from '../components/BetaBadge';
+
+const Tab = createBottomTabNavigator();
+
+const icon = (emoji: string) => () => <Text style={{ fontSize: 24 }}>{emoji}</Text>;
+
+const VISIBLE_TAB_COUNT = 6;
+const tabItemWidth = Dimensions.get('window').width / VISIBLE_TAB_COUNT;
+
+export default function DriverNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: '#3A9EFB',
+        tabBarInactiveTintColor: '#94a3b8',
+        // Icon-only on mobile — "Οι παραγγελίες μου" never fits a tab this
+        // narrow. Never affects the web Sidebar (separate component tree).
+        tabBarShowLabel: false,
+        tabBarStyle: { height: 56, paddingBottom: 8, paddingTop: 8 },
+        tabBarItemStyle: { width: tabItemWidth },
+        // App is in beta — keep a small reminder visible everywhere that
+        // problems should be reported via the Support tab.
+        headerRight: () => <BetaBadge />,
+      }}
+    >
+      <Tab.Screen
+        name="Available"
+        component={AvailableOrdersScreen}
+        options={{ title: 'Διαθέσιμες', tabBarIcon: icon('🔔') }}
+      />
+      <Tab.Screen
+        name="MyOrders"
+        component={MyOrdersScreen}
+        options={{ title: 'Οι παραγγελίες μου', tabBarIcon: icon('🛵') }}
+      />
+      <Tab.Screen
+        name="DriverHistory"
+        component={DriverHistoryScreen}
+        options={{ title: 'Ιστορικό', tabBarIcon: icon('📋') }}
+      />
+      <Tab.Screen
+        name="DriverMap"
+        component={MapScreen}
+        options={{ title: 'Χάρτης', tabBarIcon: icon('🗺️') }}
+      />
+      <Tab.Screen
+        name="DriverSupport"
+        component={SupportChatScreen}
+        options={{ title: 'Υποστήριξη', tabBarIcon: icon('🎧') }}
+      />
+      <Tab.Screen
+        name="DriverProfile"
+        component={ProfileScreen}
+        options={{ title: 'Προφίλ', tabBarIcon: icon('👤') }}
+      />
+    </Tab.Navigator>
+  );
+}

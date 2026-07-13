@@ -1,0 +1,181 @@
+import React, { useEffect, useRef, useState } from 'react';
+// @ts-ignore
+import './global.css';
+import { supabase } from '../lib/supabase';
+import { requestWebNotificationPermission } from '../lib/webNotify';
+import { colors, SIDEBAR_WIDTH, TOPBAR_HEIGHT } from './theme';
+import Sidebar, { WebScreen } from './components/Sidebar';
+import TopBar from './components/TopBar';
+// Shared
+import ProfileWeb from './screens/ProfileWeb';
+import SupportChatWeb from './screens/SupportChatWeb';
+// Owner
+import LiveOrdersWeb from './screens/owner/LiveOrdersWeb';
+import MapWeb from './screens/owner/MapWeb';
+import StatsWeb from './screens/owner/StatsWeb';
+import HistoryWeb from './screens/owner/HistoryWeb';
+import ApprovalsWeb from './screens/owner/ApprovalsWeb';
+import DirectoryWeb from './screens/owner/DirectoryWeb';
+import OwnerSubscriptionWeb from './screens/owner/SubscriptionWeb';
+import OwnerNewOrderWeb from './screens/owner/OwnerNewOrderWeb';
+// Shop
+import NewOrderWeb from './screens/shop/NewOrderWeb';
+import ShopOrdersWeb from './screens/shop/ShopOrdersWeb';
+import ShopHistoryWeb from './screens/shop/ShopHistoryWeb';
+import ShopSubscriptionWeb from './screens/shop/SubscriptionWeb';
+// Driver
+import AvailableOrdersWeb from './screens/driver/AvailableOrdersWeb';
+import MyOrdersWeb from './screens/driver/MyOrdersWeb';
+import DriverHistoryWeb from './screens/driver/DriverHistoryWeb';
+// Developer
+import SupportInboxWeb from './screens/developer/SupportInboxWeb';
+import AccountsWeb from './screens/developer/AccountsWeb';
+
+type Role = 'owner' | 'shop' | 'driver' | 'developer';
+
+interface Props {
+  role: Role;
+}
+
+const DEFAULT_SCREEN: Record<Role, WebScreen> = {
+  owner: 'live-orders',
+  shop: 'new-order',
+  driver: 'available-orders',
+  developer: 'dev-inbox',
+};
+
+function renderScreen(screen: WebScreen, role: Role) {
+  if (screen === 'profile') return <ProfileWeb role={role} />;
+  if (screen === 'support' && role !== 'developer') return <SupportChatWeb />;
+
+  if (role === 'owner') {
+    if (screen === 'live-orders') return <LiveOrdersWeb />;
+    if (screen === 'map') return <MapWeb />;
+    if (screen === 'stats') return <StatsWeb />;
+    if (screen === 'history') return <HistoryWeb />;
+    if (screen === 'approvals') return <ApprovalsWeb />;
+    if (screen === 'directory') return <DirectoryWeb />;
+    if (screen === 'subscription') return <OwnerSubscriptionWeb />;
+    if (screen === 'owner-new-order') return <OwnerNewOrderWeb />;
+  }
+  if (role === 'shop') {
+    if (screen === 'new-order') return <NewOrderWeb />;
+    if (screen === 'orders') return <ShopOrdersWeb />;
+    if (screen === 'map') return <MapWeb />;
+    if (screen === 'history') return <ShopHistoryWeb />;
+    if (screen === 'subscription') return <ShopSubscriptionWeb />;
+  }
+  if (role === 'driver') {
+    if (screen === 'available-orders') return <AvailableOrdersWeb />;
+    if (screen === 'my-orders') return <MyOrdersWeb />;
+    if (screen === 'map') return <MapWeb />;
+    if (screen === 'driver-history') return <DriverHistoryWeb />;
+  }
+  if (role === 'developer') {
+    if (screen === 'dev-inbox') return <SupportInboxWeb />;
+    if (screen === 'dev-accounts') return <AccountsWeb />;
+    if (screen === 'live-orders') return <LiveOrdersWeb />;
+    if (screen === 'stats') return <StatsWeb />;
+    if (screen === 'history') return <HistoryWeb />;
+  }
+  return null;
+}
+
+export default function WebApp({ role }: Props) {
+  const [activeScreen, setActiveScreen] = useState<WebScreen>(DEFAULT_SCREEN[role]);
+  const userIdRef = useRef<string | null>(null);
+
+  // Fetch userId once on mount
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      userIdRef.current = user?.id ?? null;
+    });
+  }, []);
+
+  // Ask for browser Notification permission once per dashboard session —
+  // needed for the sound/notification alerts in Available Orders/Shop Orders.
+  useEffect(() => {
+    requestWebNotificationPermission();
+  }, []);
+
+  // Auto-offline when tab closes or becomes hidden (drivers & shops only)
+  useEffect(() => {
+    if (role === 'owner' || role === 'developer') return;
+
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+
+    // keepalive fetch works inside beforeunload unlike async supabase calls
+    function setOfflineBeacon() {
+      const uid = userIdRef.current;
+      if (!uid) return;
+      fetch(`${supabaseUrl}/rest/v1/users?id=eq.${uid}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ online_status: false }),
+        keepalive: true,
+      });
+    }
+
+    async function setOfflineAsync() {
+      const uid = userIdRef.current;
+      if (!uid) return;
+      await supabase.from('users').update({ online_status: false }).eq('id', uid);
+    }
+
+    const handleBeforeUnload = () => setOfflineBeacon();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') setOfflineAsync();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      setOfflineAsync(); // also set offline on React unmount (e.g. sign-out)
+    };
+  }, [role]);
+
+  return (
+    <div style={s.root}>
+      <Sidebar role={role} activeScreen={activeScreen} onNavigate={setActiveScreen} />
+
+      <div style={{ ...s.main, marginLeft: SIDEBAR_WIDTH }}>
+        <TopBar activeScreen={activeScreen} />
+
+        <div style={{ ...s.content, paddingTop: TOPBAR_HEIGHT }}>
+          {renderScreen(activeScreen, role)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const s: Record<string, React.CSSProperties> = {
+  root: {
+    display: 'flex',
+    width: '100vw',
+    minHeight: '100vh',
+    background: colors.bg,
+    fontFamily: '"Inter", "Segoe UI", sans-serif',
+    overflowX: 'hidden',
+  },
+  main: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    overflowY: 'auto',
+  },
+};
