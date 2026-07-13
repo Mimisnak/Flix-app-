@@ -837,5 +837,164 @@ CREATE POLICY "Developer can delete support threads"
 
 
 -- ============================================================
+-- STEP 23: URGENT FIX — "infinite recursion detected in policy for
+-- relation users" (Postgres error 42P17), which broke login entirely.
+--
+-- STEP 21's new SELECT policy on `users` made that table's own SELECT
+-- policy check `users` itself via a subquery. Before STEP 21, the SELECT
+-- policy was a trivial `auth.role() = 'authenticated'` — so every OTHER
+-- policy in this file that asks "is this caller an owner/developer/active
+-- driver?" via `EXISTS (SELECT 1 FROM users WHERE ...)` silently relied on
+-- that trivial check to resolve its own subquery. Once the users SELECT
+-- policy itself became self-referential, EVERY one of those subqueries
+-- (in orders/customers/order_timeline/shops/drivers/support_messages
+-- policies, not just the users table's own) started recursing into the
+-- same cycle — which is why login (a plain SELECT on users) broke, along
+-- with everything else.
+--
+-- Fix: move every "is this caller X?" check into a SECURITY DEFINER
+-- function. Such functions run with the table owner's privileges, which
+-- bypass RLS entirely for their internal query — so calling one from a
+-- policy can never re-trigger that same policy's evaluation.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.is_staff()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('owner', 'developer'));
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_developer()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'developer');
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_viewing_driver()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'driver' AND active AND can_view_orders);
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_staff()          TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_developer()      TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_viewing_driver() TO authenticated;
+
+-- USERS — the policy that actually caused the recursion.
+DROP POLICY IF EXISTS "Users can read own row or staff can read all" ON users;
+CREATE POLICY "Users can read own row or staff can read all"
+  ON users FOR SELECT USING (auth.uid() = id OR public.is_staff());
+
+DROP POLICY IF EXISTS "Owner can update any user" ON users;
+CREATE POLICY "Owner can update any user"
+  ON users FOR UPDATE USING (public.is_staff());
+
+DROP POLICY IF EXISTS "Owner can delete users" ON users;
+CREATE POLICY "Owner can delete users"
+  ON users FOR DELETE USING (public.is_staff());
+
+-- SHOPS / DRIVERS
+DROP POLICY IF EXISTS "Developer can update any shop" ON shops;
+CREATE POLICY "Developer can update any shop"
+  ON shops FOR UPDATE USING (public.is_developer());
+
+DROP POLICY IF EXISTS "Developer can update any driver" ON drivers;
+CREATE POLICY "Developer can update any driver"
+  ON drivers FOR UPDATE USING (public.is_developer());
+
+-- ORDERS
+DROP POLICY IF EXISTS "Orders are visible to their shop, driver, browsing drivers, or staff" ON orders;
+CREATE POLICY "Orders are visible to their shop, driver, browsing drivers, or staff"
+  ON orders FOR SELECT USING (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR (status IN ('pending', 'assigned') AND public.is_viewing_driver())
+    OR public.is_staff()
+  );
+
+DROP POLICY IF EXISTS "Shops create their own orders, staff create for any shop" ON orders;
+CREATE POLICY "Shops create their own orders, staff create for any shop"
+  ON orders FOR INSERT WITH CHECK (shop_id = auth.uid() OR public.is_staff());
+
+DROP POLICY IF EXISTS "Orders are editable by their shop, driver, browsing drivers, or staff" ON orders;
+CREATE POLICY "Orders are editable by their shop, driver, browsing drivers, or staff"
+  ON orders FOR UPDATE USING (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR (driver_id IS NULL AND status = 'pending' AND public.is_viewing_driver())
+    OR public.is_staff()
+  ) WITH CHECK (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR public.is_staff()
+  );
+
+DROP POLICY IF EXISTS "Only staff can delete orders" ON orders;
+CREATE POLICY "Only staff can delete orders"
+  ON orders FOR DELETE USING (public.is_staff());
+
+-- CUSTOMERS
+DROP POLICY IF EXISTS "Customers are visible to their shop or staff" ON customers;
+CREATE POLICY "Customers are visible to their shop or staff"
+  ON customers FOR SELECT USING (shop_id = auth.uid() OR public.is_staff());
+
+DROP POLICY IF EXISTS "Customers are editable by their shop or staff" ON customers;
+CREATE POLICY "Customers are editable by their shop or staff"
+  ON customers FOR ALL USING (
+    shop_id = auth.uid() OR public.is_staff()
+  ) WITH CHECK (
+    shop_id = auth.uid() OR public.is_staff()
+  );
+
+-- ORDER_TIMELINE
+DROP POLICY IF EXISTS "Order timeline follows the same order's access" ON order_timeline;
+CREATE POLICY "Order timeline follows the same order's access"
+  ON order_timeline FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM orders o
+      WHERE o.id = order_timeline.order_id
+        AND (o.shop_id = auth.uid() OR o.driver_id = auth.uid())
+    )
+    OR public.is_staff()
+  ) WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM orders o
+      WHERE o.id = order_timeline.order_id
+        AND (o.shop_id = auth.uid() OR o.driver_id = auth.uid())
+    )
+    OR public.is_staff()
+  );
+
+-- SUPPORT_MESSAGES
+DROP POLICY IF EXISTS "Developer can read all support threads" ON support_messages;
+CREATE POLICY "Developer can read all support threads"
+  ON support_messages FOR SELECT USING (public.is_developer());
+
+DROP POLICY IF EXISTS "Developer can send support replies" ON support_messages;
+CREATE POLICY "Developer can send support replies"
+  ON support_messages FOR INSERT WITH CHECK (sender_role = 'developer' AND public.is_developer());
+
+DROP POLICY IF EXISTS "Developer can mark messages read" ON support_messages;
+CREATE POLICY "Developer can mark messages read"
+  ON support_messages FOR UPDATE USING (public.is_developer());
+
+DROP POLICY IF EXISTS "Developer can delete support threads" ON support_messages;
+CREATE POLICY "Developer can delete support threads"
+  ON support_messages FOR DELETE USING (public.is_developer());
+
+
+-- ============================================================
 -- END
 -- ============================================================
