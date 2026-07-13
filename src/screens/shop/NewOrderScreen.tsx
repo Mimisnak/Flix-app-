@@ -209,7 +209,6 @@ export default function NewOrderScreen() {
         <Text style={styles.label}>Τηλέφωνο</Text>
         <TextInput
           style={styles.input}
-          placeholder="π.χ. 6941234567"
           keyboardType="phone-pad"
           value={phone}
           onChangeText={handlePhoneChange}
@@ -288,7 +287,6 @@ export default function NewOrderScreen() {
         <Text style={styles.label}>Ποσό (€)</Text>
         <TextInput
           style={styles.input}
-          placeholder="π.χ. 12.50"
           keyboardType="decimal-pad"
           value={amount}
           onChangeText={setAmount}

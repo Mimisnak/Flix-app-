@@ -147,7 +147,6 @@ export default function RegisterScreen() {
           <View style={styles.inputWrap}>
             <TextInput
               style={styles.input}
-              placeholder={role === 'shop' ? 'π.χ. Μπουγάτσα Θεσσαλονίκη' : 'π.χ. Αντώνης Παπαδόπουλος'}
               placeholderTextColor="#555566"
               value={name}
               onChangeText={setName}
@@ -161,7 +160,6 @@ export default function RegisterScreen() {
           <View style={styles.inputWrap}>
             <TextInput
               style={styles.input}
-              placeholder="email@example.com"
               placeholderTextColor="#555566"
               autoCapitalize="none"
               keyboardType="email-address"
@@ -180,7 +178,6 @@ export default function RegisterScreen() {
             </View>
             <TextInput
               style={[styles.input, { borderLeftWidth: 0 }]}
-              placeholder="694 000 0000"
               placeholderTextColor="#555566"
               keyboardType="phone-pad"
               value={phone}

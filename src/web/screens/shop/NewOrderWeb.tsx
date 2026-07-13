@@ -180,7 +180,6 @@ export default function NewOrderWeb() {
           <input
             style={s.input}
             type="tel"
-            placeholder="π.χ. 6941234567"
             value={phone}
             onChange={e => handlePhoneChange(e.target.value)}
             autoComplete="off"
@@ -261,7 +260,7 @@ export default function NewOrderWeb() {
         {/* Amount */}
         <div>
           <label style={s.label}>Ποσό (€)</label>
-          <input style={s.input} placeholder="π.χ. 12.50" value={amount} onChange={e => setAmount(e.target.value)} />
+          <input style={s.input} value={amount} onChange={e => setAmount(e.target.value)} />
         </div>
 
         {/* Notes */}

@@ -235,7 +235,6 @@ export default function DirectoryWeb() {
             </label>
             <input
               style={s.modalInput}
-              placeholder="π.χ. Σουβλάκια ο Μίμης"
               value={newShopName}
               onChange={e => setNewShopName(e.target.value)}
               autoFocus
@@ -245,7 +244,6 @@ export default function DirectoryWeb() {
             </label>
             <input
               style={s.modalInput}
-              placeholder="π.χ. 2541012345"
               value={newShopPhone}
               onChange={e => setNewShopPhone(e.target.value)}
             />

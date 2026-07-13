@@ -99,7 +99,7 @@ export default function ProfileWeb({ role }: Props) {
           <input style={s.input} value={name} onChange={e => setName(e.target.value)} placeholder="Το όνομα σου" />
 
           <label style={s.label}>Τηλέφωνο</label>
-          <input style={s.input} value={phone} onChange={e => setPhone(e.target.value)} placeholder="π.χ. 6941234567" />
+          <input style={s.input} value={phone} onChange={e => setPhone(e.target.value)} />
 
           <button
             onClick={saveProfile}

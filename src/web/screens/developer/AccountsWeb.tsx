@@ -270,7 +270,7 @@ export default function AccountsWeb() {
             <input style={s.editInput} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Όνομα" />
 
             <label style={s.editLabel}>Τηλέφωνο</label>
-            <input style={s.editInput} value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="π.χ. 6941234567" />
+            <input style={s.editInput} value={editPhone} onChange={e => setEditPhone(e.target.value)} />
 
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button style={{ ...s.btnSecondary, width: 'auto', flex: 1, marginTop: 0 }} onClick={() => setEditTarget(null)}>Ακύρωση</button>

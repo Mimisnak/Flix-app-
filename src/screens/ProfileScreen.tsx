@@ -149,7 +149,6 @@ export default function ProfileScreen() {
               style={styles.input}
               value={phone}
               onChangeText={setPhone}
-              placeholder="π.χ. 6941234567"
               placeholderTextColor={Colors.textMuted}
               keyboardType="phone-pad"
             />

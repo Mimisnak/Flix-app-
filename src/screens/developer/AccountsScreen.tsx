@@ -235,7 +235,6 @@ export default function AccountsScreen() {
               style={styles.editInput}
               value={editPhone}
               onChangeText={setEditPhone}
-              placeholder="π.χ. 6941234567"
               placeholderTextColor={Colors.textMuted}
               keyboardType="phone-pad"
             />

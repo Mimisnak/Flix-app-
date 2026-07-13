@@ -174,7 +174,6 @@ export default function ShopOrdersScreen() {
             <Text style={styles.modalLabel}>Αιτία (προαιρετικά)</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="π.χ. Ο πελάτης ακύρωσε..."
               value={cancelReason}
               onChangeText={setCancelReason}
               autoFocus

@@ -272,7 +272,6 @@ export default function ShopOrdersWeb() {
             </label>
             <input
               style={s.modalInput}
-              placeholder="π.χ. Ο πελάτης ακύρωσε..."
               value={cancelReason}
               onChange={e => setCancelReason(e.target.value)}
               autoFocus

@@ -216,7 +216,6 @@ export default function DirectoryScreen() {
             <Text style={styles.modalLabel}>Όνομα Μαγαζιού *</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="π.χ. Σουβλάκια ο Μίμης"
               placeholderTextColor={Colors.textMuted}
               value={newShopName}
               onChangeText={setNewShopName}
@@ -226,7 +225,6 @@ export default function DirectoryScreen() {
             <Text style={styles.modalLabel}>Τηλέφωνο (προαιρετικό)</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="π.χ. 2541012345"
               placeholderTextColor={Colors.textMuted}
               keyboardType="phone-pad"
               value={newShopPhone}

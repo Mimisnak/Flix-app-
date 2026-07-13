@@ -225,7 +225,6 @@ export default function OwnerNewOrderScreen() {
             <Text style={styles.label}>Τηλέφωνο</Text>
             <TextInput
               style={styles.input}
-              placeholder="π.χ. 6941234567"
               placeholderTextColor={Colors.textMuted}
               keyboardType="phone-pad"
               value={phone}
@@ -311,7 +310,6 @@ export default function OwnerNewOrderScreen() {
         <Text style={styles.label}>Ποσό (€)</Text>
         <TextInput
           style={styles.input}
-          placeholder="π.χ. 12.50"
           placeholderTextColor={Colors.textMuted}
           keyboardType="decimal-pad"
           value={amount}
