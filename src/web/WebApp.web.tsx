@@ -173,7 +173,12 @@ const s: Record<string, React.CSSProperties> = {
   root: {
     display: 'flex',
     width: '100vw',
-    height: '100vh',
+    // dvh (not vh) — vh is computed as if the browser's address bar were
+    // hidden, so on mobile the true visible area is smaller. Since the page
+    // itself never scrolls (only the content div below does), the address
+    // bar never auto-collapses to reveal that gap, permanently hiding
+    // whatever's at the bottom of any content-heavy screen.
+    height: '100dvh',
     background: colors.bg,
     fontFamily: '"Inter", "Segoe UI", sans-serif',
     overflow: 'hidden',
