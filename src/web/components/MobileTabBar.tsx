@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import { NAV_BY_ROLE, WebScreen } from './Sidebar';
+
+function NavIcon({ item, size, opacity }: { item: { icon: string; emoji?: boolean }; size: number; opacity: number }) {
+  if (item.emoji) return <span style={{ fontSize: size, opacity }}>{item.icon}</span>;
+  return <Ionicons name={item.icon as any} size={size} color={colors.textPrimary} style={{ opacity }} />;
+}
 
 export const MOBILE_TABBAR_HEIGHT = 60;
 const VISIBLE_COUNT = 4;
@@ -35,13 +41,13 @@ export default function MobileTabBar({ role, activeScreen, onNavigate }: Props) 
           const isActive = activeScreen === item.screen;
           return (
             <button key={item.screen} onClick={() => select(item.screen as WebScreen)} style={s.tab}>
-              <span style={{ fontSize: 22, opacity: isActive ? 1 : 0.55 }}>{item.icon}</span>
+              <NavIcon item={item} size={22} opacity={isActive ? 1 : 0.55} />
             </button>
           );
         })}
         {overflow.length > 0 && (
           <button onClick={() => setMoreOpen(true)} style={s.tab}>
-            <span style={{ fontSize: 22, opacity: isOverflowActive || moreOpen ? 1 : 0.55 }}>☰</span>
+            <Ionicons name="menu-outline" size={22} color={colors.textPrimary} style={{ opacity: isOverflowActive || moreOpen ? 1 : 0.55 }} />
           </button>
         )}
       </nav>
@@ -60,7 +66,9 @@ export default function MobileTabBar({ role, activeScreen, onNavigate }: Props) 
                   background: activeScreen === item.screen ? colors.primaryHover : 'transparent',
                 }}
               >
-                <span style={{ fontSize: 18, width: 26, textAlign: 'center' }}>{item.icon}</span>
+                <span style={{ width: 26, textAlign: 'center' }}>
+                  <NavIcon item={item} size={18} opacity={1} />
+                </span>
                 <span>{item.label}</span>
               </button>
             ))}

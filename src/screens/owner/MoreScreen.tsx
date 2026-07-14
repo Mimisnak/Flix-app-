@@ -1,16 +1,19 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 
-const ITEMS: { label: string; icon: string; route: string }[] = [
-  { label: 'Νέα Παραγγελία', icon: '➕', route: 'OwnerNewOrder' },
-  { label: 'Εγκρίσεις', icon: '✅', route: 'Approvals' },
-  { label: 'Χάρτης', icon: '🗺️', route: 'Map' },
-  { label: 'Συνδρομή', icon: '💳', route: 'OwnerSubscription' },
-  { label: 'Υποστήριξη', icon: '🎧', route: 'OwnerSupport' },
-  { label: 'Προφίλ', icon: '👤', route: 'OwnerProfile' },
-  { label: 'Οδηγός Χρήσης', icon: '📖', route: 'Help' },
+// Emoji kept only for Χάρτης/Συνδρομή/Υποστήριξη/Προφίλ — everything else
+// uses a plain vector icon to match the tab bar.
+const ITEMS: { label: string; icon: string; emoji?: boolean; route: string }[] = [
+  { label: 'Νέα Παραγγελία', icon: 'add-circle-outline', route: 'OwnerNewOrder' },
+  { label: 'Εγκρίσεις', icon: 'checkmark-circle-outline', route: 'Approvals' },
+  { label: 'Χάρτης', icon: '🗺️', emoji: true, route: 'Map' },
+  { label: 'Συνδρομή', icon: '💳', emoji: true, route: 'OwnerSubscription' },
+  { label: 'Υποστήριξη', icon: '🎧', emoji: true, route: 'OwnerSupport' },
+  { label: 'Προφίλ', icon: '👤', emoji: true, route: 'OwnerProfile' },
+  { label: 'Οδηγός Χρήσης', icon: 'help-circle-outline', route: 'Help' },
 ];
 
 export default function MoreScreen() {
@@ -19,7 +22,7 @@ export default function MoreScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>☰ Περισσότερα</Text>
+        <Text style={styles.headerTitle}>Περισσότερα</Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: 12 }}>
         {ITEMS.map((item) => (
@@ -29,7 +32,11 @@ export default function MoreScreen() {
             onPress={() => navigation.navigate(item.route)}
             activeOpacity={0.7}
           >
-            <Text style={styles.icon}>{item.icon}</Text>
+            {item.emoji ? (
+              <Text style={styles.icon}>{item.icon}</Text>
+            ) : (
+              <Ionicons name={item.icon as any} size={20} color={Colors.textPrimary} style={styles.iconVector} />
+            )}
             <Text style={styles.label}>{item.label}</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
@@ -51,6 +58,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, padding: 16, marginBottom: 8, borderWidth: 1, borderColor: Colors.border,
   },
   icon: { fontSize: 20, marginRight: 14 },
+  iconVector: { marginRight: 14, width: 20 },
   label: { flex: 1, color: Colors.textPrimary, fontSize: 15, fontWeight: '600' },
   chevron: { color: Colors.textMuted, fontSize: 20 },
 });

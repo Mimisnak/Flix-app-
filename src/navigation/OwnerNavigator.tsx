@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dimensions, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import LiveOrdersScreen from '../screens/owner/LiveOrdersScreen';
 import MapScreen from '../screens/owner/MapScreen';
@@ -29,6 +30,10 @@ const hidden = {
 };
 
 const icon = (emoji: string) => () => <Text style={{ fontSize: 24 }}>{emoji}</Text>;
+// Plain vector icons for most tabs — emoji is kept only for Υποστήριξη,
+// Συνδρομή, Χάρτης, Προφίλ.
+const vicon = (name: React.ComponentProps<typeof Ionicons>['name']) =>
+  ({ color, size }: { color: string; size: number }) => <Ionicons name={name} size={size} color={color} />;
 
 // tabBarItemStyle: { flex: 1 } alone doesn't reliably stretch items to fill
 // the bar on every device — fall back to computing an exact pixel width per
@@ -57,27 +62,27 @@ export default function OwnerNavigator() {
       <Tab.Screen
         name="LiveOrders"
         component={LiveOrdersScreen}
-        options={{ title: 'Live', tabBarIcon: icon('🟢') }}
+        options={{ title: 'Live', tabBarIcon: vicon('pulse-outline') }}
       />
       <Tab.Screen
         name="Directory"
         component={DirectoryScreen}
-        options={{ title: 'Κατάλογος', tabBarIcon: icon('📇') }}
+        options={{ title: 'Κατάλογος', tabBarIcon: vicon('people-outline') }}
       />
       <Tab.Screen
         name="OwnerHistory"
         component={OwnerHistoryScreen}
-        options={{ title: 'Ιστορικό', tabBarIcon: icon('📋') }}
+        options={{ title: 'Ιστορικό', tabBarIcon: vicon('time-outline') }}
       />
       <Tab.Screen
         name="Stats"
         component={StatsScreen}
-        options={{ title: 'Στατιστικά', tabBarIcon: icon('📊') }}
+        options={{ title: 'Στατιστικά', tabBarIcon: vicon('stats-chart-outline') }}
       />
       <Tab.Screen
         name="More"
         component={MoreScreen}
-        options={{ title: 'Περισσότερα', tabBarIcon: icon('☰') }}
+        options={{ title: 'Περισσότερα', tabBarIcon: vicon('menu-outline') }}
       />
 
       {/* Hidden from the tab bar, still reachable via navigation.navigate() */}

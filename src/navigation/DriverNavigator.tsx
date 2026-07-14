@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dimensions, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AvailableOrdersScreen from '../screens/driver/AvailableOrdersScreen';
 import MyOrdersScreen from '../screens/driver/MyOrdersScreen';
@@ -21,6 +22,10 @@ const hidden = {
 };
 
 const icon = (emoji: string) => () => <Text style={{ fontSize: 24 }}>{emoji}</Text>;
+// Plain vector icons for most tabs — emoji is kept only for Χάρτης,
+// Υποστήριξη, Προφίλ.
+const vicon = (name: React.ComponentProps<typeof Ionicons>['name']) =>
+  ({ color, size }: { color: string; size: number }) => <Ionicons name={name} size={size} color={color} />;
 
 const VISIBLE_TAB_COUNT = 6;
 const tabItemWidth = Dimensions.get('window').width / VISIBLE_TAB_COUNT;
@@ -44,17 +49,17 @@ export default function DriverNavigator() {
       <Tab.Screen
         name="Available"
         component={AvailableOrdersScreen}
-        options={{ title: 'Διαθέσιμες', tabBarIcon: icon('🔔') }}
+        options={{ title: 'Διαθέσιμες', tabBarIcon: vicon('notifications-outline') }}
       />
       <Tab.Screen
         name="MyOrders"
         component={MyOrdersScreen}
-        options={{ title: 'Οι παραγγελίες μου', tabBarIcon: icon('🛵') }}
+        options={{ title: 'Οι παραγγελίες μου', tabBarIcon: vicon('navigate-outline') }}
       />
       <Tab.Screen
         name="DriverHistory"
         component={DriverHistoryScreen}
-        options={{ title: 'Ιστορικό', tabBarIcon: icon('📋') }}
+        options={{ title: 'Ιστορικό', tabBarIcon: vicon('time-outline') }}
       />
       <Tab.Screen
         name="DriverMap"

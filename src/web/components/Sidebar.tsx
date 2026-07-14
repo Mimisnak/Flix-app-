@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, SIDEBAR_WIDTH } from '../theme';
 
 export type OwnerScreen = 'live-orders' | 'map' | 'approvals' | 'directory' | 'subscription' | 'owner-new-order' | 'stats' | 'history' | 'support' | 'profile' | 'help';
@@ -7,49 +8,53 @@ export type DriverScreen = 'available-orders' | 'my-orders' | 'map' | 'driver-hi
 export type DeveloperScreen = 'dev-inbox' | 'dev-accounts' | 'live-orders' | 'stats' | 'history' | 'profile' | 'help';
 export type WebScreen = OwnerScreen | ShopScreen | DriverScreen | DeveloperScreen;
 
-const OWNER_NAV: { label: string; screen: OwnerScreen; icon: string }[] = [
-  { label: 'Live Orders', screen: 'live-orders', icon: '📦' },
-  { label: 'Χάρτης', screen: 'map', icon: '🗺️' },
-  { label: 'Εγκρίσεις', screen: 'approvals', icon: '✅' },
-  { label: 'Κατάλογος', screen: 'directory', icon: '📇' },
-  { label: 'Συνδρομή', screen: 'subscription', icon: '💳' },
-  { label: 'Νέα Παραγγελία', screen: 'owner-new-order', icon: '➕' },
-  { label: 'Στατιστικά', screen: 'stats', icon: '📊' },
-  { label: 'Ιστορικό', screen: 'history', icon: '🕑' },
-  { label: 'Υποστήριξη', screen: 'support', icon: '🎧' },
-  { label: 'Προφίλ', screen: 'profile', icon: '👤' },
-  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
+interface NavItem<S> { label: string; screen: S; icon: string; emoji?: boolean }
+
+// Emoji kept only for Χάρτης/Συνδρομή/Υποστήριξη/Προφίλ — everything else
+// uses a plain vector icon (Ionicons) to look less decorative.
+const OWNER_NAV: NavItem<OwnerScreen>[] = [
+  { label: 'Live Orders', screen: 'live-orders', icon: 'pulse-outline' },
+  { label: 'Χάρτης', screen: 'map', icon: '🗺️', emoji: true },
+  { label: 'Εγκρίσεις', screen: 'approvals', icon: 'checkmark-circle-outline' },
+  { label: 'Κατάλογος', screen: 'directory', icon: 'people-outline' },
+  { label: 'Συνδρομή', screen: 'subscription', icon: '💳', emoji: true },
+  { label: 'Νέα Παραγγελία', screen: 'owner-new-order', icon: 'add-circle-outline' },
+  { label: 'Στατιστικά', screen: 'stats', icon: 'stats-chart-outline' },
+  { label: 'Ιστορικό', screen: 'history', icon: 'time-outline' },
+  { label: 'Υποστήριξη', screen: 'support', icon: '🎧', emoji: true },
+  { label: 'Προφίλ', screen: 'profile', icon: '👤', emoji: true },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: 'help-circle-outline' },
 ];
 
-const SHOP_NAV: { label: string; screen: ShopScreen; icon: string }[] = [
-  { label: 'Νέα Παραγγελία', screen: 'new-order', icon: '➕' },
-  { label: 'Παραγγελίες', screen: 'orders', icon: '📋' },
-  { label: 'Χάρτης', screen: 'map', icon: '🗺️' },
-  { label: 'Ιστορικό', screen: 'history', icon: '🕑' },
-  { label: 'Συνδρομή', screen: 'subscription', icon: '💳' },
-  { label: 'Υποστήριξη', screen: 'support', icon: '🎧' },
-  { label: 'Προφίλ', screen: 'profile', icon: '👤' },
-  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
+const SHOP_NAV: NavItem<ShopScreen>[] = [
+  { label: 'Νέα Παραγγελία', screen: 'new-order', icon: 'add-circle-outline' },
+  { label: 'Παραγγελίες', screen: 'orders', icon: 'cube-outline' },
+  { label: 'Χάρτης', screen: 'map', icon: '🗺️', emoji: true },
+  { label: 'Ιστορικό', screen: 'history', icon: 'time-outline' },
+  { label: 'Συνδρομή', screen: 'subscription', icon: '💳', emoji: true },
+  { label: 'Υποστήριξη', screen: 'support', icon: '🎧', emoji: true },
+  { label: 'Προφίλ', screen: 'profile', icon: '👤', emoji: true },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: 'help-circle-outline' },
 ];
 
-const DRIVER_NAV: { label: string; screen: DriverScreen; icon: string }[] = [
-  { label: 'Διαθέσιμες', screen: 'available-orders', icon: '📦' },
-  { label: 'Οι Παραγγελίες μου', screen: 'my-orders', icon: '🛵' },
-  { label: 'Χάρτης', screen: 'map', icon: '🗺️' },
-  { label: 'Ιστορικό', screen: 'driver-history', icon: '🕑' },
-  { label: 'Υποστήριξη', screen: 'support', icon: '🎧' },
-  { label: 'Προφίλ', screen: 'profile', icon: '👤' },
-  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
+const DRIVER_NAV: NavItem<DriverScreen>[] = [
+  { label: 'Διαθέσιμες', screen: 'available-orders', icon: 'notifications-outline' },
+  { label: 'Οι Παραγγελίες μου', screen: 'my-orders', icon: 'navigate-outline' },
+  { label: 'Χάρτης', screen: 'map', icon: '🗺️', emoji: true },
+  { label: 'Ιστορικό', screen: 'driver-history', icon: 'time-outline' },
+  { label: 'Υποστήριξη', screen: 'support', icon: '🎧', emoji: true },
+  { label: 'Προφίλ', screen: 'profile', icon: '👤', emoji: true },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: 'help-circle-outline' },
 ];
 
-const DEVELOPER_NAV: { label: string; screen: DeveloperScreen; icon: string }[] = [
-  { label: 'Υποστήριξη', screen: 'dev-inbox', icon: '🎧' },
-  { label: 'Λογαριασμοί', screen: 'dev-accounts', icon: '🗂️' },
-  { label: 'Live Orders', screen: 'live-orders', icon: '📦' },
-  { label: 'Στατιστικά', screen: 'stats', icon: '📊' },
-  { label: 'Ιστορικό', screen: 'history', icon: '🕑' },
-  { label: 'Προφίλ', screen: 'profile', icon: '👤' },
-  { label: 'Οδηγός Χρήσης', screen: 'help', icon: '📖' },
+const DEVELOPER_NAV: NavItem<DeveloperScreen>[] = [
+  { label: 'Υποστήριξη', screen: 'dev-inbox', icon: '🎧', emoji: true },
+  { label: 'Λογαριασμοί', screen: 'dev-accounts', icon: 'people-circle-outline' },
+  { label: 'Live Orders', screen: 'live-orders', icon: 'pulse-outline' },
+  { label: 'Στατιστικά', screen: 'stats', icon: 'stats-chart-outline' },
+  { label: 'Ιστορικό', screen: 'history', icon: 'time-outline' },
+  { label: 'Προφίλ', screen: 'profile', icon: '👤', emoji: true },
+  { label: 'Οδηγός Χρήσης', screen: 'help', icon: 'help-circle-outline' },
 ];
 
 interface Props {
@@ -109,7 +114,11 @@ export default function Sidebar({ role, activeScreen, onNavigate }: Props) {
                 borderLeft: isActive ? `3px solid ${colors.primary}` : '3px solid transparent',
               }}
             >
-              <span style={s.icon}>{item.icon}</span>
+              <span style={s.icon}>
+                {item.emoji
+                  ? item.icon
+                  : <Ionicons name={item.icon as any} size={16} color={isActive ? colors.primary : colors.textPrimary} />}
+              </span>
               <span style={{ fontWeight: isActive ? 600 : 400 }}>{item.label}</span>
             </button>
           );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dimensions, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ShopOrdersScreen from '../screens/shop/ShopOrdersScreen';
 import ShopHistoryScreen from '../screens/shop/ShopHistoryScreen';
@@ -22,6 +23,10 @@ const hidden = {
 };
 
 const icon = (emoji: string) => () => <Text style={{ fontSize: 24 }}>{emoji}</Text>;
+// Plain vector icons for most tabs — emoji is kept only for Χάρτης,
+// Συνδρομή, Υποστήριξη, Προφίλ.
+const vicon = (name: React.ComponentProps<typeof Ionicons>['name']) =>
+  ({ color, size }: { color: string; size: number }) => <Ionicons name={name} size={size} color={color} />;
 
 const VISIBLE_TAB_COUNT = 7;
 const tabItemWidth = Dimensions.get('window').width / VISIBLE_TAB_COUNT;
@@ -46,17 +51,17 @@ export default function ShopNavigator() {
       <Tab.Screen
         name="NewOrder"
         component={NewOrderScreen}
-        options={{ title: 'Νέα Παραγγελία', tabBarIcon: icon('➕') }}
+        options={{ title: 'Νέα Παραγγελία', tabBarIcon: vicon('add-circle-outline') }}
       />
       <Tab.Screen
         name="ShopOrders"
         component={ShopOrdersScreen}
-        options={{ title: 'Παραγγελίες', tabBarIcon: icon('📦') }}
+        options={{ title: 'Παραγγελίες', tabBarIcon: vicon('cube-outline') }}
       />
       <Tab.Screen
         name="ShopHistory"
         component={ShopHistoryScreen}
-        options={{ title: 'Ιστορικό', tabBarIcon: icon('📋') }}
+        options={{ title: 'Ιστορικό', tabBarIcon: vicon('time-outline') }}
       />
       <Tab.Screen
         name="ShopMap"

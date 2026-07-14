@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dimensions, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import SupportInboxScreen from '../screens/developer/SupportInboxScreen';
 import AccountsScreen from '../screens/developer/AccountsScreen';
@@ -22,6 +23,10 @@ const hidden = {
 };
 
 const icon = (emoji: string) => () => <Text style={{ fontSize: 24 }}>{emoji}</Text>;
+// Plain vector icons for most tabs — emoji is kept only for Υποστήριξη,
+// Συνδρομή, Χάρτης, Προφίλ.
+const vicon = (name: React.ComponentProps<typeof Ionicons>['name']) =>
+  ({ color, size }: { color: string; size: number }) => <Ionicons name={name} size={size} color={color} />;
 
 const VISIBLE_TAB_COUNT = 5;
 const tabItemWidth = Dimensions.get('window').width / VISIBLE_TAB_COUNT;
@@ -51,22 +56,22 @@ export default function DeveloperNavigator() {
       <Tab.Screen
         name="Accounts"
         component={AccountsScreen}
-        options={{ title: 'Λογαριασμοί', tabBarIcon: icon('🗂️') }}
+        options={{ title: 'Λογαριασμοί', tabBarIcon: vicon('people-circle-outline') }}
       />
       <Tab.Screen
         name="DevLiveOrders"
         component={LiveOrdersScreen}
-        options={{ title: 'Live', tabBarIcon: icon('🟢') }}
+        options={{ title: 'Live', tabBarIcon: vicon('pulse-outline') }}
       />
       <Tab.Screen
         name="DevHistory"
         component={OwnerHistoryScreen}
-        options={{ title: 'Ιστορικό', tabBarIcon: icon('📋') }}
+        options={{ title: 'Ιστορικό', tabBarIcon: vicon('time-outline') }}
       />
       <Tab.Screen
         name="More"
         component={MoreScreen}
-        options={{ title: 'Περισσότερα', tabBarIcon: icon('☰') }}
+        options={{ title: 'Περισσότερα', tabBarIcon: vicon('menu-outline') }}
       />
 
       {/* Hidden from the tab bar, still reachable via navigation.navigate() */}
