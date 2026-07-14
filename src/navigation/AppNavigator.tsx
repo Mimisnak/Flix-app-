@@ -149,6 +149,7 @@ export default function AppNavigator() {
       .single();
 
     if (!data) {
+      alert('Ο λογαριασμός δεν βρέθηκε', 'Αυτό το προφίλ δεν υπάρχει πια. Επικοινώνησε με τον διαχειριστή αν νομίζεις ότι πρόκειται για λάθος.');
       await supabase.auth.signOut();
       return;
     }

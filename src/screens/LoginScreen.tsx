@@ -49,7 +49,10 @@ export default function LoginScreen() {
     });
     setLoading(false);
     if (error) {
-      alert('Σφάλμα', error.message);
+      // Deliberately generic — Supabase itself never says which one is
+      // wrong, to stop someone from probing emails to see which have an
+      // account. Same wording regardless of the underlying reason.
+      alert('Σφάλμα Σύνδεσης', 'Λάθος email ή κωδικός.');
     } else {
       // Remember Me: checked = stay signed in across app restarts;
       // unchecked = require login again next time the app is opened.

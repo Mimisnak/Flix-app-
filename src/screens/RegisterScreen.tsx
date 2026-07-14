@@ -58,7 +58,21 @@ export default function RegisterScreen() {
     });
 
     if (error) {
-      alert('Σφάλμα', error.message);
+      if (error.message.toLowerCase().includes('already registered')) {
+        alert('Σφάλμα', 'Αυτό το email χρησιμοποιείται ήδη από άλλο λογαριασμό.');
+      } else {
+        alert('Σφάλμα', error.message);
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Supabase returns a "successful" signUp with an empty identities array
+    // instead of an explicit error when the email already belongs to a
+    // confirmed account — deliberate, to stop someone from probing emails
+    // to see which already have an account. Needs its own check.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      alert('Σφάλμα', 'Αυτό το email χρησιμοποιείται ήδη από άλλο λογαριασμό.');
       setLoading(false);
       return;
     }
@@ -87,7 +101,7 @@ export default function RegisterScreen() {
 
     alert(
       '✅ Επιτυχία!',
-      'Ο λογαριασμός σου δημιουργήθηκε και αναμένει έγκριση από τον διαχειριστή.',
+      'Ο λογαριασμός σου δημιουργήθηκε. Αν χρειάζεται επιβεβαίωση, θα λάβεις email — μετά αναμένει έγκριση από τον διαχειριστή.',
       [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
     );
   }
