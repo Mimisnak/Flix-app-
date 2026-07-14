@@ -60,7 +60,8 @@ export default function ApprovalsScreen() {
           text: 'Απόρριψη',
           style: 'destructive',
           onPress: async () => {
-            await supabase.from('users').delete().eq('id', userId);
+            const { error } = await supabase.rpc('delete_account', { p_user_id: userId });
+            if (error) { Alert.alert('Σφάλμα', error.message); return; }
             fetchPending();
           },
         },

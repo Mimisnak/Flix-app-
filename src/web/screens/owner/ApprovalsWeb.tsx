@@ -64,8 +64,10 @@ export default function ApprovalsWeb() {
     const confirmed = window.confirm(`Είσαι σίγουρος ότι θέλεις να απορρίψεις τον "${user.name}"; Αυτή η ενέργεια δεν αναιρείται.`);
     if (!confirmed) return;
     setActionLoading(user.id);
-    await supabase.from('users').delete().eq('id', user.id);
+    const { error } = await supabase.rpc('delete_account', { p_user_id: user.id });
     setActionLoading(null);
+    if (error) { window.alert(error.message); return; }
+    fetchPending();
   }
 
   const columns = useMemo(() => [
