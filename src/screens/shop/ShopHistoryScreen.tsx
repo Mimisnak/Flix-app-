@@ -97,7 +97,7 @@ export default function ShopHistoryScreen() {
                 {item.customer_name ? <Text style={styles.meta}>Πελάτης: {item.customer_name}</Text> : null}
                 {item.phone ? <Text style={styles.meta}>Τηλέφωνο: {item.phone}</Text> : null}
                 {item.status === 'assigned' || item.status === 'delivered'
-                  ? <Text style={styles.meta}>Ντελιβεράς: {(item as any).drivers?.name ?? '—'}</Text>
+                  ? <Text style={styles.meta}>Διανομέας: {(item as any).drivers?.name ?? '—'}</Text>
                   : null
                 }
                 {deliveryInfo(item) && (

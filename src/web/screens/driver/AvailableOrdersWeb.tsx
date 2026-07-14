@@ -89,8 +89,8 @@ export default function AvailableOrdersWeb() {
       .select('shop_id')
       .single();
     if (order) {
-      await addOrderTimeline(orderId, `🛵 Πήρε ο ${driverName || 'ντελιβεράς'} — σε διαδρομή`);
-      sendPushToUsers([shopId], '🛵 Παραλαμβάνεται!', `Ο ${driverName || 'ντελιβεράς'} πήρε την παραγγελία.`);
+      await addOrderTimeline(orderId, `🛵 Πήρε ο ${driverName || 'διανομέας'} — σε διαδρομή`);
+      sendPushToUsers([shopId], '🛵 Παραλαμβάνεται!', `Ο ${driverName || 'διανομέας'} πήρε την παραγγελία.`);
     }
     setTakingId(null);
   }, [userId, driverName, isOnShift, canViewOrders]);

@@ -97,7 +97,7 @@ export default function LiveOrdersWeb() {
       .from('orders')
       .update({ driver_id: driverId, status: 'assigned', assigned_at: new Date().toISOString() })
       .eq('id', orderId);
-    await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver?.name ?? 'ντελιβεράς'} — σε διαδρομή`);
+    await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver?.name ?? 'διανομέας'} — σε διαδρομή`);
     setAssigning(null);
   }
 

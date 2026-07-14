@@ -134,7 +134,7 @@ export default function RegisterScreen() {
             activeOpacity={0.7}
           >
             <Text style={[styles.roleText, role === 'driver' && styles.roleTextActive]}>
-              Ντελιβεράς
+              Διανομέας
             </Text>
           </TouchableOpacity>
         </View>

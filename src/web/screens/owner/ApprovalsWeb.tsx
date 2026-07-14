@@ -92,7 +92,7 @@ export default function ApprovalsWeb() {
           background: info.getValue() === 'shop' ? 'rgba(58,158,251,0.15)' : 'rgba(167,139,250,0.15)',
           color: info.getValue() === 'shop' ? colors.primary : '#A78BFA',
         }}>
-          {info.getValue() === 'shop' ? '🏬 Μαγαζί' : '🛵 Ντελιβεράς'}
+          {info.getValue() === 'shop' ? '🏬 Μαγαζί' : '🛵 Διανομέας'}
         </span>
       ),
     }),
@@ -181,7 +181,7 @@ export default function ApprovalsWeb() {
                     background: user.role === 'shop' ? 'rgba(58,158,251,0.15)' : 'rgba(167,139,250,0.15)',
                     color: user.role === 'shop' ? colors.primary : '#A78BFA',
                   }}>
-                    {user.role === 'shop' ? '🏬 Μαγαζί' : '🛵 Ντελιβεράς'}
+                    {user.role === 'shop' ? '🏬 Μαγαζί' : '🛵 Διανομέας'}
                   </span>
                   <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                     <button

@@ -148,7 +148,7 @@ export default function ShopOrdersScreen() {
                 <Text style={styles.amount}>Ποσό: {item.amount.toFixed(2)}€</Text>
               ) : null}
               {item.status === 'assigned' && (
-                <Text style={styles.driver}>Ντελιβεράς: {(item as any).drivers?.name}</Text>
+                <Text style={styles.driver}>Διανομέας: {(item as any).drivers?.name}</Text>
               )}
               <Text style={styles.time}>
                 {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}

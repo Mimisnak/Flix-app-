@@ -79,9 +79,9 @@ export default function AvailableOrdersScreen() {
       .select('shop_id, street')
       .single();
     if (!order) return; // someone else took it first
-    await addOrderTimeline(orderId, `🛵 Πήρε ο ${driverName || 'ντελιβεράς'} — σε διαδρομή`);
+    await addOrderTimeline(orderId, `🛵 Πήρε ο ${driverName || 'διανομέας'} — σε διαδρομή`);
     if (order?.shop_id) {
-      sendPushToUsers([order.shop_id], '🛵 Παραλαμβάνεται!', `Ο ${driverName || 'ντελιβεράς'} πήρε την παραγγελία.`);
+      sendPushToUsers([order.shop_id], '🛵 Παραλαμβάνεται!', `Ο ${driverName || 'διανομέας'} πήρε την παραγγελία.`);
     }
   }, [userId, driverName, isOnShift, canViewOrders]);
 

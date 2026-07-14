@@ -9,7 +9,7 @@ import { accountDisplayName } from '../../../lib/accounts';
 const ROLE_LABELS: Record<string, string> = {
   owner: '👑 Διαχειριστής',
   shop: '🏬 Μαγαζί',
-  driver: '🛵 Ντελιβεράς',
+  driver: '🛵 Διανομέας',
   developer: '👨‍💻 Developer',
 };
 

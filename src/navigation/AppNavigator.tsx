@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus, Linking, Platform, View } from 'react-native';
+import { Linking, Platform, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
 import { alert } from '../lib/alert';
@@ -111,22 +111,14 @@ export default function AppNavigator() {
     return () => sub.remove();
   }, []);
 
-  // Auto-offline when app goes to background (mobile only)
-  useEffect(() => {
-    if (Platform.OS === 'web') return;
-
-    const subscription = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
-      if (nextState === 'background') {
-        const uid = currentUserIdRef.current;
-        const role = currentRoleRef.current;
-        if (uid && (role === 'driver' || role === 'shop')) {
-          await supabase.from('users').update({ online_status: false }).eq('id', uid);
-        }
-      }
-    });
-
-    return () => subscription.remove();
-  }, []);
+  // Deliberately no "set offline when app goes to background" handler here.
+  // AppState reports 'background' the instant the screen locks, a
+  // notification shade opens, or the user briefly switches apps — none of
+  // which mean the driver/shop actually stopped working, but each one
+  // flipped online_status to false within seconds, causing the owner's
+  // dashboard to flicker between online/offline for someone still on
+  // shift. The heartbeat + 2-minute staleness window (src/lib/onlineStatus.ts)
+  // already covers "actually walked away" without this false-positive.
 
   // Called when splash animation finishes — then we check auth
   async function handleSplashFinish() {

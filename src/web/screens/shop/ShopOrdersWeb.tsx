@@ -197,7 +197,7 @@ export default function ShopOrdersWeb() {
                 {item.amount != null && <div style={cardStyles.amount}>Ποσό: {item.amount.toFixed(2)}€</div>}
                 {(item as any).drivers?.name && (
                   <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>
-                    Ντελιβεράς: {(item as any).drivers.name}
+                    Διανομέας: {(item as any).drivers.name}
                   </div>
                 )}
                 <div style={cardStyles.meta}>

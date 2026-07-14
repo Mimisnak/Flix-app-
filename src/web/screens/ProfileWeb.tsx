@@ -4,7 +4,7 @@ import { colors } from '../theme';
 
 const ROLE_LABELS: Record<string, string> = {
   shop: '🏬 Μαγαζί',
-  driver: '🛵 Ντελιβεράς',
+  driver: '🛵 Διανομέας',
   owner: '👑 Διαχειριστής',
   developer: '👨‍💻 Developer',
 };

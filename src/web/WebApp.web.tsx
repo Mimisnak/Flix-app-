@@ -103,7 +103,14 @@ export default function WebApp({ role }: Props) {
     requestWebNotificationPermission();
   }, []);
 
-  // Auto-offline when tab closes or becomes hidden (drivers & shops only)
+  // Auto-offline when the tab actually closes/refreshes (drivers & shops
+  // only). Deliberately NOT triggered by visibilitychange->hidden anymore —
+  // that fired the instant the tab lost focus or the OS backgrounded the
+  // browser (switching tabs, screen lock, a notification), flipping the
+  // status to offline within seconds even though the driver/shop was still
+  // genuinely working. The heartbeat + 2-minute staleness window
+  // (src/lib/onlineStatus.ts) already handles "actually walked away"
+  // gracefully without this false-positive flicker.
   useEffect(() => {
     if (role === 'owner' || role === 'developer') return;
 
@@ -127,24 +134,12 @@ export default function WebApp({ role }: Props) {
       });
     }
 
-    async function setOfflineAsync() {
-      const uid = userIdRef.current;
-      if (!uid) return;
-      await supabase.from('users').update({ online_status: false }).eq('id', uid);
-    }
-
     const handleBeforeUnload = () => setOfflineBeacon();
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') setOfflineAsync();
-    };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      setOfflineAsync(); // also set offline on React unmount (e.g. sign-out)
+      setOfflineBeacon(); // also set offline on React unmount (e.g. sign-out)
     };
   }, [role]);
 
