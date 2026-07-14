@@ -996,5 +996,52 @@ CREATE POLICY "Developer can delete support threads"
 
 
 -- ============================================================
+-- STEP 24: Permanent account deletion for shops/drivers, replacing the
+-- "Απενεργοποίηση" (deactivate) button in the owner's Κατάλογος. When the
+-- owner removes a shop/driver that has actually left, they want no trace
+-- left anywhere (history, stats, CSV export) — not a soft-deactivated
+-- account still cluttering the list. Bypasses RLS via SECURITY DEFINER;
+-- restricted to owner/developer callers, and only ever targets a
+-- shop/driver (never owner/developer), as a safety guard against wiping
+-- the wrong kind of account through this button.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.delete_account(p_user_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_role TEXT;
+BEGIN
+  IF NOT public.is_staff() THEN
+    RAISE EXCEPTION 'Only an owner or developer can delete an account';
+  END IF;
+
+  SELECT role INTO v_role FROM users WHERE id = p_user_id;
+  IF v_role IS NULL THEN
+    RETURN; -- already gone
+  END IF;
+  IF v_role NOT IN ('shop', 'driver') THEN
+    RAISE EXCEPTION 'This can only delete shop or driver accounts';
+  END IF;
+
+  DELETE FROM order_timeline
+    WHERE order_id IN (SELECT id FROM orders WHERE shop_id = p_user_id OR driver_id = p_user_id);
+  DELETE FROM orders WHERE shop_id = p_user_id OR driver_id = p_user_id;
+  DELETE FROM customers WHERE shop_id = p_user_id;
+  DELETE FROM support_messages WHERE user_id = p_user_id;
+  DELETE FROM shops WHERE id = p_user_id;
+  DELETE FROM drivers WHERE id = p_user_id;
+  DELETE FROM users WHERE id = p_user_id;
+  DELETE FROM auth.users WHERE id = p_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.delete_account(UUID) TO authenticated;
+
+
+-- ============================================================
 -- END
 -- ============================================================

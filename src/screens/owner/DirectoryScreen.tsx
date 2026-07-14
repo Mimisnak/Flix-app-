@@ -76,21 +76,19 @@ export default function DirectoryScreen() {
     setLoading(false);
   }
 
-  async function toggleActive(entry: DirectoryEntry) {
-    const verb = entry.active ? 'απενεργοποιήσεις' : 'ενεργοποιήσεις';
+  async function deleteAccount(entry: DirectoryEntry) {
     Alert.alert(
-      entry.active ? 'Απενεργοποίηση' : 'Ενεργοποίηση',
-      `Θέλεις σίγουρα να ${verb} τον/την "${entry.name}";`,
+      'Οριστική Διαγραφή',
+      `Θα διαγραφούν οριστικά ο/η "${entry.name}" και ΟΛΕΣ οι παραγγελίες/ιστορικό του. Δεν αναιρείται.`,
       [
         { text: 'Ακύρωση', style: 'cancel' },
         {
-          text: entry.active ? 'Απενεργοποίηση' : 'Ενεργοποίηση',
-          style: entry.active ? 'destructive' : 'default',
+          text: 'Διαγραφή',
+          style: 'destructive',
           onPress: async () => {
-            await supabase
-              .from('users')
-              .update({ active: !entry.active, online_status: false })
-              .eq('id', entry.id);
+            const { error } = await supabase.rpc('delete_account', { p_user_id: entry.id });
+            if (error) Alert.alert('Σφάλμα', error.message);
+            else fetchEntries();
           },
         },
       ]
@@ -160,11 +158,11 @@ export default function DirectoryScreen() {
       )}
 
       <TouchableOpacity
-        style={[styles.actionBtn, item.active ? styles.deactivateBtn : styles.activateBtn]}
-        onPress={() => toggleActive(item)}
+        style={[styles.actionBtn, styles.deactivateBtn]}
+        onPress={() => deleteAccount(item)}
       >
-        <Text style={[styles.actionBtnText, item.active ? styles.deactivateBtnText : styles.activateBtnText]}>
-          {item.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
+        <Text style={[styles.actionBtnText, styles.deactivateBtnText]}>
+          🗑️ Διαγραφή
         </Text>
       </TouchableOpacity>
     </View>
@@ -303,10 +301,8 @@ const styles = StyleSheet.create({
   switchLabel: { color: Colors.textSecondary, fontSize: 13 },
   actionBtn: { marginTop: 12, padding: 11, borderRadius: 10, alignItems: 'center' },
   deactivateBtn: { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.4)' },
-  activateBtn: { backgroundColor: 'rgba(34, 197, 94, 0.1)', borderWidth: 1, borderColor: 'rgba(34, 197, 94, 0.4)' },
   actionBtnText: { fontWeight: 'bold', fontSize: 13 },
   deactivateBtnText: { color: Colors.error },
-  activateBtnText: { color: Colors.success },
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center', alignItems: 'center',

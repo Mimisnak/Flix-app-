@@ -72,15 +72,13 @@ export default function DirectoryWeb() {
     setLoading(false);
   }
 
-  async function toggleActive(entry: DirectoryEntry) {
-    const verb = entry.active ? 'απενεργοποιήσεις' : 'ενεργοποιήσεις';
-    if (!window.confirm(`Θέλεις σίγουρα να ${verb} τον/την "${entry.name}";`)) return;
+  async function deleteAccount(entry: DirectoryEntry) {
+    if (!window.confirm(`Θα διαγραφούν οριστικά ο/η "${entry.name}" και ΟΛΕΣ οι παραγγελίες/ιστορικό του. Δεν αναιρείται.`)) return;
     setActionLoading(entry.id);
-    await supabase
-      .from('users')
-      .update({ active: !entry.active, online_status: false })
-      .eq('id', entry.id);
+    const { error } = await supabase.rpc('delete_account', { p_user_id: entry.id });
     setActionLoading(null);
+    if (error) { window.alert(error.message); return; }
+    fetchEntries();
   }
 
   async function toggleCanViewOrders(entry: DirectoryEntry) {
@@ -175,17 +173,17 @@ export default function DirectoryWeb() {
           const isLoading = actionLoading === entry.id;
           return (
             <button
-              onClick={() => toggleActive(entry)}
+              onClick={() => deleteAccount(entry)}
               disabled={isLoading}
               style={{
                 ...s.actionBtn,
-                background: entry.active ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
-                color: entry.active ? colors.error : colors.success,
-                border: `1px solid ${entry.active ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)'}`,
+                background: 'rgba(239,68,68,0.12)',
+                color: colors.error,
+                border: '1px solid rgba(239,68,68,0.4)',
                 opacity: isLoading ? 0.5 : 1,
               }}
             >
-              {isLoading ? '...' : entry.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
+              {isLoading ? '...' : '🗑️ Διαγραφή'}
             </button>
           );
         },
@@ -298,17 +296,17 @@ export default function DirectoryWeb() {
                     </label>
                   )}
                   <button
-                    onClick={() => toggleActive(entry)}
+                    onClick={() => deleteAccount(entry)}
                     disabled={isLoading}
                     style={{
                       ...s.actionBtn, marginTop: 10, width: '100%',
-                      background: entry.active ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
-                      color: entry.active ? colors.error : colors.success,
-                      border: `1px solid ${entry.active ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)'}`,
+                      background: 'rgba(239,68,68,0.12)',
+                      color: colors.error,
+                      border: '1px solid rgba(239,68,68,0.4)',
                       opacity: isLoading ? 0.5 : 1,
                     }}
                   >
-                    {isLoading ? '...' : entry.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
+                    {isLoading ? '...' : '🗑️ Διαγραφή'}
                   </button>
                 </div>
               );
