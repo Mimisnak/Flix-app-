@@ -27,6 +27,14 @@ export default function AvailableOrdersScreen() {
     const channel = supabase
       .channel('available-orders-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchAvailable)
+      // Own row only — catches the owner flipping "Βλέπει παραγγελίες" or
+      // shift status while this screen is already open. Without this, the
+      // list stayed visible (stale local state) until the driver restarted
+      // the app, even though the server itself was already blocking access.
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${userId}` }, (payload: any) => {
+        setIsOnShift(payload.new.online_status);
+        setCanViewOrders(payload.new.can_view_orders ?? true);
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };

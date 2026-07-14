@@ -42,6 +42,14 @@ export default function AvailableOrdersWeb() {
           notifyWeb('Νέα παραγγελία', payload.new.street ?? 'Νέα παραγγελία διαθέσιμη');
         }
       })
+      // Own row only — catches the owner flipping "Βλέπει παραγγελίες" or
+      // shift status while this tab is already open. Without this, the
+      // list stayed visible (stale local state) until the tab reloaded,
+      // even though the server itself was already blocking access.
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${userId}` }, (payload: any) => {
+        setIsOnShift(payload.new.online_status);
+        setCanViewOrders(payload.new.can_view_orders ?? true);
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [userId]);
