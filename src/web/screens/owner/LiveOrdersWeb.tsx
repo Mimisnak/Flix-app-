@@ -10,6 +10,7 @@ import { colors } from '../../theme';
 import { Order, Driver } from '../../../types';
 import StatusBadge from '../../components/StatusBadge';
 import { addOrderTimeline } from '../../../lib/orderHelpers';
+import { sendPushToUsers } from '../../../lib/notifications';
 import { isReallyOnline } from '../../../lib/onlineStatus';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { cardStyles } from '../../components/cardStyles';
@@ -101,6 +102,21 @@ export default function LiveOrdersWeb() {
     setAssigning(null);
   }
 
+  // Lets the owner undo a mistaken order (wrong shop, duplicate, assigned to
+  // the wrong driver, etc). Cancels rather than hard-deletes so it still
+  // shows up in the history with a clear reason, same as a shop/driver cancel.
+  async function cancelOrder(order: OrderRow) {
+    if (!window.confirm(`Θέλεις σίγουρα να ακυρώσεις την παραγγελία "${order.street}";`)) return;
+    await supabase
+      .from('orders')
+      .update({ status: 'cancelled', cancel_reason: 'Ακυρώθηκε από τον διαχειριστή' })
+      .eq('id', order.id);
+    await addOrderTimeline(order.id, '❌ Ακυρώθηκε από τον διαχειριστή');
+    if (order.driver_id) {
+      sendPushToUsers([order.driver_id], '❌ Ακυρώθηκε', `Η παραγγελία "${order.street}" ακυρώθηκε από τον διαχειριστή.`);
+    }
+  }
+
   const columns = useMemo(() => [
     columnHelper.accessor('created_at', {
       header: 'Ώρα',
@@ -128,14 +144,17 @@ export default function LiveOrdersWeb() {
       id: 'actions',
       header: 'Ενέργεια',
       cell: ({ row }) => (
-        <AssignCell
-          order={row.original}
-          drivers={drivers}
-          isOpen={assigning === row.original.id}
-          onOpen={() => setAssigning(row.original.id)}
-          onClose={() => setAssigning(null)}
-          onAssign={assignDriver}
-        />
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <AssignCell
+            order={row.original}
+            drivers={drivers}
+            isOpen={assigning === row.original.id}
+            onOpen={() => setAssigning(row.original.id)}
+            onClose={() => setAssigning(null)}
+            onAssign={assignDriver}
+          />
+          <button onClick={() => cancelOrder(row.original)} style={s.cancelBtn}>✕ Ακύρωση</button>
+        </div>
       ),
     }),
   ], [drivers, assigning]);
@@ -176,7 +195,7 @@ export default function LiveOrdersWeb() {
                 <div style={cardStyles.meta}>
                   {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
-                <div style={{ marginTop: 10 }}>
+                <div style={{ marginTop: 10, display: 'flex', gap: 6, alignItems: 'center' }}>
                   <AssignCell
                     order={item}
                     drivers={drivers}
@@ -185,6 +204,7 @@ export default function LiveOrdersWeb() {
                     onClose={() => setAssigning(null)}
                     onAssign={assignDriver}
                   />
+                  <button onClick={() => cancelOrder(item)} style={s.cancelBtn}>✕ Ακύρωση</button>
                 </div>
               </div>
             ))
@@ -374,5 +394,16 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 13,
     cursor: 'pointer',
     outline: 'none',
+  },
+  cancelBtn: {
+    padding: '5px 12px',
+    borderRadius: 6,
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    background: 'rgba(239,68,68,0.1)',
+    color: '#EF4444',
+    border: '1px solid rgba(239,68,68,0.35)',
   },
 };

@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, AppState, FlatList, StyleSheet, Text, Touchab
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
 import { addOrderTimeline } from '../../lib/orderHelpers';
+import { sendPushToUsers } from '../../lib/notifications';
 import { isReallyOnline } from '../../lib/onlineStatus';
 import { Driver, Order } from '../../types';
 import { Colors } from '../../constants/colors';
@@ -113,6 +114,33 @@ export default function LiveOrdersScreen() {
     );
   }, [assignDriver]);
 
+  // Lets the owner undo a mistaken order (wrong shop, duplicate, assigned to
+  // the wrong driver, etc). Cancels rather than hard-deletes so it still
+  // shows up in the history with a clear reason, same as a shop/driver cancel.
+  const cancelOrder = useCallback(async (item: Order) => {
+    Alert.alert(
+      'Ακύρωση Παραγγελίας',
+      `Θέλεις σίγουρα να ακυρώσεις την παραγγελία "${item.street}";`,
+      [
+        { text: 'Πίσω', style: 'cancel' },
+        {
+          text: 'Ακύρωση Παραγγελίας',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase
+              .from('orders')
+              .update({ status: 'cancelled', cancel_reason: 'Ακυρώθηκε από τον διαχειριστή' })
+              .eq('id', item.id);
+            await addOrderTimeline(item.id, '❌ Ακυρώθηκε από τον διαχειριστή');
+            if (item.driver_id) {
+              sendPushToUsers([item.driver_id], '❌ Ακυρώθηκε', `Η παραγγελία "${item.street}" ακυρώθηκε από τον διαχειριστή.`);
+            }
+          },
+        },
+      ]
+    );
+  }, []);
+
   const renderOrder = useCallback(({ item }: { item: Order }) => (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -150,8 +178,12 @@ export default function LiveOrdersScreen() {
             </View>
           </View>
         )}
+
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => cancelOrder(item)}>
+          <Text style={styles.cancelBtnText}>✕ Ακύρωση</Text>
+        </TouchableOpacity>
       </View>
-  ), [drivers, handleAssignPress]);
+  ), [drivers, handleAssignPress, cancelOrder]);
 
   return (
     <View style={styles.container}>
@@ -207,4 +239,9 @@ const styles = StyleSheet.create({
   assignBtns: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   assignBtn: { backgroundColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8 },
   assignBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  cancelBtn: {
+    marginTop: 10, padding: 9, borderRadius: 10, alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.4)', backgroundColor: 'rgba(239, 68, 68, 0.06)',
+  },
+  cancelBtnText: { color: Colors.error, fontSize: 13, fontWeight: '600' },
 });
