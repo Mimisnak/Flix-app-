@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { supabase } from '../lib/supabase';
+import { supabase, isPasswordRecoveryLink } from '../lib/supabase';
 import { alert } from '../lib/alert';
 import { registerPushToken } from '../lib/notifications';
 import { isRememberMeDisabled } from '../lib/rememberMe';
@@ -31,14 +31,18 @@ type AppScreen = 'splash' | 'auth' | 'owner' | 'shop' | 'driver' | 'developer' |
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 
 export default function AppNavigator() {
-  const [screen, setScreen] = useState<AppScreen>('splash');
+  // isPasswordRecoveryLink is read from the URL at module-load time (see
+  // src/lib/supabase.ts) — using it directly as the initial state, rather
+  // than detecting it in an effect after mount, means the very first render
+  // already shows the recovery screen with no async race to lose.
+  const [screen, setScreen] = useState<AppScreen>(isPasswordRecoveryLink ? 'recovery' : 'splash');
   const [authInitialRoute, setAuthInitialRoute] = useState<keyof AuthStackParamList>('Welcome');
   const currentUserIdRef = useRef<string | null>(null);
   const currentRoleRef = useRef<AppScreen>('splash');
   // Set as soon as a PASSWORD_RECOVERY session is detected, so the SIGNED_IN
   // branch below doesn't yank the user into their normal dashboard before
   // they've had a chance to set a new password.
-  const isRecoveryRef = useRef(false);
+  const isRecoveryRef = useRef(isPasswordRecoveryLink);
 
   // Only shops/drivers carry an "online"/"open" status the owner relies on —
   // auto-signout after inactivity, plus a heartbeat so that status can't get
@@ -70,26 +74,6 @@ export default function AppNavigator() {
     });
 
     return () => listener.subscription.unsubscribe();
-  }, []);
-
-  // Web: Supabase's client parses the recovery tokens out of the URL
-  // automatically (detectSessionInUrl) and fires PASSWORD_RECOVERY on its
-  // own — but that parsing is async, and can lose the race against
-  // handleSplashFinish's own getSession() check below, which would then
-  // see "no session yet" and land on the Welcome screen instead of the
-  // password-reset screen. Checking the raw URL ourselves, synchronously,
-  // on first render closes that race — Supabase still does the actual
-  // token exchange in the background; this only fixes which screen shows
-  // while that happens.
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-    const isRecoveryLink =
-      window.location.hash.includes('type=recovery') ||
-      window.location.search.includes('code=');
-    if (isRecoveryLink) {
-      isRecoveryRef.current = true;
-      setScreen('recovery');
-    }
   }, []);
 
   // Native deep-link handling for the "forgot password" email link — the
