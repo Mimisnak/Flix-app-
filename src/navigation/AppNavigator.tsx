@@ -72,10 +72,29 @@ export default function AppNavigator() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Native deep-link handling for the "forgot password" email link. On web,
-  // Supabase's client parses the URL automatically (detectSessionInUrl) and
-  // the PASSWORD_RECOVERY event above fires on its own — this block only
-  // matters on iOS/Android, where the flixfix:// link has to be parsed by hand.
+  // Web: Supabase's client parses the recovery tokens out of the URL
+  // automatically (detectSessionInUrl) and fires PASSWORD_RECOVERY on its
+  // own — but that parsing is async, and can lose the race against
+  // handleSplashFinish's own getSession() check below, which would then
+  // see "no session yet" and land on the Welcome screen instead of the
+  // password-reset screen. Checking the raw URL ourselves, synchronously,
+  // on first render closes that race — Supabase still does the actual
+  // token exchange in the background; this only fixes which screen shows
+  // while that happens.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const isRecoveryLink =
+      window.location.hash.includes('type=recovery') ||
+      window.location.search.includes('code=');
+    if (isRecoveryLink) {
+      isRecoveryRef.current = true;
+      setScreen('recovery');
+    }
+  }, []);
+
+  // Native deep-link handling for the "forgot password" email link — the
+  // flixfix:// link has to be parsed by hand (no browser URL for Supabase
+  // to auto-detect on native).
   useEffect(() => {
     if (Platform.OS === 'web') return;
 
