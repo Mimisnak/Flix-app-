@@ -85,7 +85,11 @@ export default function MyOrdersWeb() {
   // realtime filter, so remove it from the local list directly instead of
   // waiting on a channel event that won't arrive.
   const unassignOrder = useCallback(async (orderId: string) => {
-    await supabase.from('orders').update({ driver_id: null, status: 'pending', assigned_at: null }).eq('id', orderId);
+    const { error } = await supabase.from('orders').update({ driver_id: null, status: 'pending', assigned_at: null }).eq('id', orderId);
+    if (error) {
+      window.alert('Δεν ήταν δυνατή η αποδέσμευση της παραγγελίας. Δοκίμασε ξανά.');
+      return;
+    }
     await addOrderTimeline(orderId, '↩️ Αποδεσμεύτηκε από τον οδηγό — επέστρεψε στις διαθέσιμες');
     setOrders(prev => prev.filter(o => o.id !== orderId));
     closeIssueModal();

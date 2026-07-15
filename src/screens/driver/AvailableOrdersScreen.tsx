@@ -34,6 +34,11 @@ export default function AvailableOrdersScreen() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${userId}` }, (payload: any) => {
         setIsOnShift(payload.new.online_status);
         setCanViewOrders(payload.new.can_view_orders ?? true);
+        // While can_view_orders was false, RLS blocked pending/assigned
+        // orders from being fetched at all — flipping it back on doesn't
+        // retroactively backfill the already-fetched (empty) local state,
+        // so re-fetch here to pick up anything created in the meantime.
+        fetchAvailable();
       })
       .subscribe();
 
@@ -75,6 +80,9 @@ export default function AvailableOrdersScreen() {
     const newStatus = !isOnShift;
     await supabase.from('users').update({ online_status: newStatus, last_seen_at: new Date().toISOString() }).eq('id', userId);
     setIsOnShift(newStatus);
+    // Re-fetch on going on-shift: covers orders placed while off-shift that
+    // the realtime channel may have missed (app backgrounded, reconnect gap).
+    if (newStatus) fetchAvailable();
   }
 
   const takeOrder = useCallback(async (orderId: string) => {

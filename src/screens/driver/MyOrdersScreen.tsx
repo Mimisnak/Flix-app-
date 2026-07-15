@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator, FlatList, Modal, StyleSheet,
+  ActivityIndicator, Alert, FlatList, Modal, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -102,10 +102,14 @@ export default function MyOrdersScreen() {
   // `driver_id=eq.userId` realtime filter, so remove it from the local list
   // directly instead of waiting on a channel event that won't arrive.
   const unassignOrder = useCallback(async (orderId: string) => {
-    await supabase
+    const { error } = await supabase
       .from('orders')
       .update({ driver_id: null, status: 'pending', assigned_at: null })
       .eq('id', orderId);
+    if (error) {
+      Alert.alert('Σφάλμα', 'Δεν ήταν δυνατή η αποδέσμευση της παραγγελίας. Δοκίμασε ξανά.');
+      return;
+    }
     await addOrderTimeline(orderId, '↩️ Αποδεσμεύτηκε από τον οδηγό — επέστρεψε στις διαθέσιμες');
     setOrders(prev => prev.filter(o => o.id !== orderId));
     closeIssueModal();

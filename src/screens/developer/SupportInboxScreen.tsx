@@ -191,8 +191,11 @@ function ThreadDetail({ thread, onBack }: { thread: Thread; onBack: () => void }
     setSending(false);
   }
 
+  // See SupportChatScreen.tsx for why Android gets no manual offset — its
+  // own resize (softwareKeyboardLayoutMode default) already handles the
+  // keyboard; a fixed offset here only ever matched one specific phone.
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={90}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.threadDetailTopRow}>

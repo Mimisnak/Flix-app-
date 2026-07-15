@@ -9,12 +9,13 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { Colors } from '../constants/colors';
+import { validateName } from '../lib/validateName';
 
 const ROLE_LABELS: Record<string, string> = {
-  shop: '🏬 Μαγαζί',
-  driver: '🛵 Διανομέας',
-  owner: '👑 Διαχειριστής',
-  developer: '👨‍💻 Developer',
+  shop: 'Μαγαζί',
+  driver: 'Διανομέας',
+  owner: 'Διαχειριστής',
+  developer: 'Developer',
 };
 
 export default function ProfileScreen() {
@@ -63,8 +64,9 @@ export default function ProfileScreen() {
   }
 
   async function saveProfile() {
-    if (!name.trim()) {
-      Alert.alert('Σφάλμα', 'Το όνομα είναι υποχρεωτικό');
+    const nameError = validateName(name, role as 'shop' | 'driver');
+    if (nameError) {
+      Alert.alert('Σφάλμα', nameError);
       return;
     }
     setSaving(true);
@@ -75,7 +77,7 @@ export default function ProfileScreen() {
       .eq('id', userId);
     setSaving(false);
     if (error) Alert.alert('Σφάλμα', error.message);
-    else Alert.alert('✅ Αποθηκεύτηκε', 'Τα στοιχεία σου ενημερώθηκαν.');
+    else Alert.alert('Αποθηκεύτηκε', 'Τα στοιχεία σου ενημερώθηκαν.');
   }
 
   async function changePassword() {
@@ -89,7 +91,7 @@ export default function ProfileScreen() {
     if (error) Alert.alert('Σφάλμα', error.message);
     else {
       setNewPassword('');
-      Alert.alert('✅ Ενημερώθηκε', 'Ο κωδικός σου άλλαξε.');
+      Alert.alert('Ενημερώθηκε', 'Ο κωδικός σου άλλαξε.');
     }
   }
 
@@ -158,7 +160,7 @@ export default function ProfileScreen() {
               onPress={saveProfile}
               disabled={saving}
             >
-              <Text style={styles.btnText}>{saving ? 'Αποθήκευση...' : '💾 Αποθήκευση'}</Text>
+              <Text style={styles.btnText}>{saving ? 'Αποθήκευση...' : 'Αποθήκευση'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -190,7 +192,7 @@ export default function ProfileScreen() {
             onPress={changePassword}
             disabled={saving || !newPassword}
           >
-            <Text style={styles.btnText}>🔐 Αλλαγή Κωδικού</Text>
+            <Text style={styles.btnText}>Αλλαγή Κωδικού</Text>
           </TouchableOpacity>
         </View>
 
@@ -199,7 +201,7 @@ export default function ProfileScreen() {
           onPress={() => navigation.navigate('Help')}
           activeOpacity={0.7}
         >
-          <Text style={styles.helpText}>📖 Οδηγός Χρήσης</Text>
+          <Text style={styles.helpText}>Οδηγός Χρήσης</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -207,7 +209,7 @@ export default function ProfileScreen() {
           onPress={handleSignOut}
           disabled={signingOut}
         >
-          <Text style={styles.signOutText}>{signingOut ? 'Αποσύνδεση...' : '🚪 Αποσύνδεση'}</Text>
+          <Text style={styles.signOutText}>{signingOut ? 'Αποσύνδεση...' : 'Αποσύνδεση'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

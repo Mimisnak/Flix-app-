@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../theme';
+import { validateName } from '../../lib/validateName';
 
 const ROLE_LABELS: Record<string, string> = {
-  shop: '🏬 Μαγαζί',
-  driver: '🛵 Διανομέας',
-  owner: '👑 Διαχειριστής',
-  developer: '👨‍💻 Developer',
+  shop: 'Μαγαζί',
+  driver: 'Διανομέας',
+  owner: 'Διαχειριστής',
+  developer: 'Developer',
 };
 
 interface Props {
@@ -45,8 +46,9 @@ export default function ProfileWeb({ role }: Props) {
   }
 
   async function saveProfile() {
-    if (!name.trim()) {
-      window.alert('Το όνομα είναι υποχρεωτικό');
+    const nameError = validateName(name, role as 'shop' | 'driver');
+    if (nameError) {
+      window.alert(nameError);
       return;
     }
     setSaving(true);
@@ -57,7 +59,7 @@ export default function ProfileWeb({ role }: Props) {
       .eq('id', userId);
     setSaving(false);
     if (error) window.alert(error.message);
-    else window.alert('✅ Τα στοιχεία σου ενημερώθηκαν.');
+    else window.alert('Τα στοιχεία σου ενημερώθηκαν.');
   }
 
   async function changePassword() {
@@ -71,7 +73,7 @@ export default function ProfileWeb({ role }: Props) {
     if (error) window.alert(error.message);
     else {
       setNewPassword('');
-      window.alert('✅ Ο κωδικός σου άλλαξε.');
+      window.alert('Ο κωδικός σου άλλαξε.');
     }
   }
 
@@ -106,7 +108,7 @@ export default function ProfileWeb({ role }: Props) {
             disabled={saving}
             style={{ ...s.btn, background: colors.primary, opacity: saving ? 0.6 : 1 }}
           >
-            {saving ? 'Αποθήκευση...' : '💾 Αποθήκευση'}
+            {saving ? 'Αποθήκευση...' : 'Αποθήκευση'}
           </button>
         </div>
       )}
@@ -144,7 +146,7 @@ export default function ProfileWeb({ role }: Props) {
             marginTop: 14,
           }}
         >
-          {changingPassword ? 'Ενημέρωση...' : '🔐 Αλλαγή Κωδικού'}
+          {changingPassword ? 'Ενημέρωση...' : 'Αλλαγή Κωδικού'}
         </button>
       </div>
 
@@ -154,7 +156,7 @@ export default function ProfileWeb({ role }: Props) {
         disabled={signingOut}
         style={{ ...s.signOutBtn, opacity: signingOut ? 0.6 : 1 }}
       >
-        {signingOut ? 'Αποσύνδεση...' : '🚪 Αποσύνδεση'}
+        {signingOut ? 'Αποσύνδεση...' : 'Αποσύνδεση'}
       </button>
     </div>
   );

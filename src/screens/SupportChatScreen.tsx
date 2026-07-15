@@ -57,8 +57,15 @@ export default function SupportChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={90}
+      // Android already resizes the window when the keyboard opens
+      // (softwareKeyboardLayoutMode defaults to "resize"). Also applying
+      // 'height' behavior here on top of that, with a fixed 90px offset
+      // tuned on one phone, double-compensated and pushed content by the
+      // wrong amount on devices with a different status/nav bar height —
+      // on some phones the keyboard ended up covering the input instead of
+      // sitting above it. Let Android's own resize handle it; only iOS
+      // needs KeyboardAvoidingView to manually pad.
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
         <View style={styles.header}>

@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { Colors } from '../constants/colors';
 import { alert } from '../lib/alert';
+import { validateName } from '../lib/validateName';
 
 type Role = 'shop' | 'driver';
 
@@ -35,6 +36,11 @@ export default function RegisterScreen() {
   async function handleRegister() {
     if (!name.trim() || !email.trim() || !password.trim()) {
       alert('Σφάλμα', 'Συμπλήρωσε όλα τα υποχρεωτικά πεδία.');
+      return;
+    }
+    const nameError = validateName(name, role);
+    if (nameError) {
+      alert('Σφάλμα', nameError);
       return;
     }
     if (password.length < 6) {

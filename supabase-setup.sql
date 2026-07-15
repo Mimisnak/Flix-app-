@@ -1043,5 +1043,37 @@ GRANT EXECUTE ON FUNCTION public.delete_account(UUID) TO authenticated;
 
 
 -- ============================================================
+-- STEP 25: BUG FIX — a driver using "Έκανα λάθος / Ανάθεση σε άλλον" (My
+-- Orders → Πρόβλημα) to release their own order back to the pool silently
+-- failed: the UPDATE's WITH CHECK clause only allowed the resulting row to
+-- have shop_id = auth.uid() OR driver_id = auth.uid() OR staff — but
+-- unassigning intentionally sets driver_id to NULL, which no driver could
+-- ever satisfy. Postgres rejected the write with an RLS violation, the
+-- client never checked `error`, so the app removed the order from the
+-- local list (looked like success) while the DB still had it assigned —
+-- it reappeared on the next fetch/realtime refresh, looking like the
+-- button "did nothing" on repeat taps. Adding `driver_id IS NULL` to WITH
+-- CHECK only ever matters for rows USING already proved this driver owned
+-- (driver_id = auth.uid() on the OLD row) — it can't be used to unassign
+-- someone else's order, since that OLD-row check still gates which rows
+-- are targetable at all.
+-- ============================================================
+
+DROP POLICY IF EXISTS "Orders are editable by their shop, driver, browsing drivers, or staff" ON orders;
+CREATE POLICY "Orders are editable by their shop, driver, browsing drivers, or staff"
+  ON orders FOR UPDATE USING (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR (driver_id IS NULL AND status = 'pending' AND public.is_viewing_driver())
+    OR public.is_staff()
+  ) WITH CHECK (
+    shop_id = auth.uid()
+    OR driver_id = auth.uid()
+    OR driver_id IS NULL
+    OR public.is_staff()
+  );
+
+
+-- ============================================================
 -- END
 -- ============================================================
