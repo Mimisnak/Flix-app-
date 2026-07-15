@@ -263,9 +263,9 @@ export default function ShopOrdersWeb() {
       {cancelTarget && (
         <div style={s.overlay}>
           <div style={s.modal}>
-            <h3 style={{ color: colors.textPrimary, margin: '0 0 6px' }}>✕ Ακύρωση Παραγγελίας</h3>
+            <h3 style={{ color: colors.textPrimary, margin: '0 0 6px' }}>Ακύρωση Παραγγελίας</h3>
             <p style={{ color: colors.textSecondary, fontSize: 13, margin: '0 0 18px' }}>
-              📍 {cancelTarget.street}
+              {cancelTarget.street}
             </p>
             <label style={{ fontSize: 13, color: colors.textSecondary, display: 'block', marginBottom: 6 }}>
               Αιτία (προαιρετικά)

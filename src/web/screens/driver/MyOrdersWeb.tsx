@@ -184,10 +184,10 @@ export default function MyOrdersWeb() {
                   <div style={cardStyles.row}>
                     <span style={cardStyles.title}>{item.street}</span>
                   </div>
-                  {item.customer_name && <div style={cardStyles.detail}>👤 {item.customer_name}</div>}
-                  {item.phone && <div style={cardStyles.detail}>📞 {item.phone}</div>}
-                  {item.amount != null && <div style={cardStyles.amount}>💵 {item.amount.toFixed(2)}€</div>}
-                  <div style={cardStyles.meta}>🏬 {(item as any).shops?.name ?? '—'}</div>
+                  {item.customer_name && <div style={cardStyles.detail}>{item.customer_name}</div>}
+                  {item.phone && <div style={cardStyles.detail}>{item.phone}</div>}
+                  {item.amount != null && <div style={cardStyles.amount}>{item.amount.toFixed(2)}€</div>}
+                  <div style={cardStyles.meta}>{(item as any).shops?.name ?? '—'}</div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                     <button
                       onClick={() => completeOrder(item.id, item.shop_id)}
@@ -259,7 +259,7 @@ export default function MyOrdersWeb() {
           <div style={s.modal}>
             {issueStep === 'choice' ? (
               <>
-                <h3 style={{ color: colors.textPrimary, margin: '0 0 4px' }}>⚠️ Πρόβλημα με την παραγγελία</h3>
+                <h3 style={{ color: colors.textPrimary, margin: '0 0 4px' }}>Πρόβλημα με την παραγγελία</h3>
                 <p style={{ color: colors.textSecondary, fontSize: 13, margin: '0 0 18px' }}>{issueOrder.street}</p>
 
                 <button

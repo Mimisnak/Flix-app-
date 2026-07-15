@@ -107,25 +107,25 @@ export default function AvailableOrdersScreen() {
     return (
       <View style={[styles.card, takenByOther && styles.cardTaken]}>
         <Text style={styles.street}>{item.street}</Text>
-        {item.customer_name ? <Text style={styles.detail}>👤 {item.customer_name}</Text> : null}
-        {item.phone ? <Text style={styles.detail}>📞 {item.phone}</Text> : null}
-        {item.bell ? <Text style={styles.detail}>🔔 Κουδούνι: {item.bell}</Text> : null}
-        {item.floor ? <Text style={styles.detail}>🏢 Όροφος {item.floor}</Text> : null}
-        {item.notes ? <Text style={styles.detail}>📝 {item.notes}</Text> : null}
-        {item.amount != null ? <Text style={styles.amount}>💵 {item.amount.toFixed(2)}€</Text> : null}
-        <Text style={styles.shop}>🏬 {(item as any).shops?.name}</Text>
+        {item.customer_name ? <Text style={styles.detail}>{item.customer_name}</Text> : null}
+        {item.phone ? <Text style={styles.detail}>{item.phone}</Text> : null}
+        {item.bell ? <Text style={styles.detail}>Κουδούνι: {item.bell}</Text> : null}
+        {item.floor ? <Text style={styles.detail}>Όροφος {item.floor}</Text> : null}
+        {item.notes ? <Text style={styles.detail}>{item.notes}</Text> : null}
+        {item.amount != null ? <Text style={styles.amount}>{item.amount.toFixed(2)}€</Text> : null}
+        <Text style={styles.shop}>{(item as any).shops?.name}</Text>
         <Text style={styles.time}>
           {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
         </Text>
         {takenByOther ? (
           <View style={styles.takenBadge}>
             <Text style={styles.takenBadgeText}>
-              🛵 Την έχει ο {(item as any).drivers?.name ?? 'άλλος οδηγός'}
+              Την έχει ο {(item as any).drivers?.name ?? 'άλλος οδηγός'}
             </Text>
           </View>
         ) : takenByMe ? (
           <View style={styles.takenBadgeMine}>
-            <Text style={styles.takenBadgeMineText}>✋ Την πήρες εσύ — δες την στις "Οι παραγγελίες μου"</Text>
+            <Text style={styles.takenBadgeMineText}>Την πήρες εσύ — δες την στις "Οι παραγγελίες μου"</Text>
           </View>
         ) : (
           <TouchableOpacity style={styles.takeBtn} onPress={() => takeOrder(item.id)}>
@@ -139,8 +139,8 @@ export default function AvailableOrdersScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={[Colors.primaryDark, Colors.primary]} style={styles.header} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-        <View>
-          <Text style={styles.headerTitle}>Διαθέσιμες Παραγγελίες</Text>
+        <View style={styles.headerTitleWrap}>
+          <Text style={styles.headerTitle} numberOfLines={1}>Διαθέσιμες Παραγγελίες</Text>
           <Text style={styles.headerSub}>{orders.length} περιμένουν</Text>
         </View>
         <TouchableOpacity
@@ -148,7 +148,7 @@ export default function AvailableOrdersScreen() {
           onPress={toggleShift}
         >
           <View style={[styles.shiftDot, { backgroundColor: isOnShift ? '#22C55E' : '#71717A' }]} />
-          <Text style={styles.shiftText}>{isOnShift ? 'Σε βάρδια' : 'Εκτός βάρδιας'}</Text>
+          <Text style={styles.shiftText} numberOfLines={1}>{isOnShift ? 'Σε βάρδια' : 'Εκτός βάρδιας'}</Text>
         </TouchableOpacity>
       </LinearGradient>
 
@@ -178,10 +178,13 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
+  headerTitleWrap: { flex: 1, flexShrink: 1, marginRight: 10 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   headerSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
+  // flexShrink: 0 so a longer title never compresses "Σε βάρδια" down to
+  // where it wraps onto two lines ("Σε" / "βάρδια") on narrower phones.
   shiftBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 7,
+    flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 0,
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1,
   },
   shiftOn: { backgroundColor: 'rgba(21, 87, 36, 0.85)', borderColor: 'rgba(255,255,255,0.3)' },

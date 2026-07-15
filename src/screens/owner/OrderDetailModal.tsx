@@ -42,13 +42,13 @@ export default function OrderDetailModal({ order, onClose }: Props) {
             </TouchableOpacity>
           </View>
           <Text style={styles.meta}>
-            🏬 {(order as any).shops?.name ?? '—'}  |  🛵 {(order as any).drivers?.name ?? '—'}
+            {(order as any).shops?.name ?? '—'}  |  {(order as any).drivers?.name ?? '—'}
           </Text>
-          {order.amount != null && <Text style={styles.amount}>💵 {order.amount.toFixed(2)}€</Text>}
+          {order.amount != null && <Text style={styles.amount}>{order.amount.toFixed(2)}€</Text>}
 
           {duration && (
             <View style={styles.durationBox}>
-              <Text style={styles.durationText}>⏱ Χρόνος παράδοσης: {duration}</Text>
+              <Text style={styles.durationText}>Χρόνος παράδοσης: {duration}</Text>
             </View>
           )}
 

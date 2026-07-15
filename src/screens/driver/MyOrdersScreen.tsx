@@ -118,13 +118,13 @@ export default function MyOrdersScreen() {
   const renderItem = useCallback(({ item }: { item: Order }) => (
     <View style={styles.card}>
       <Text style={styles.street}>{item.street}</Text>
-      {item.customer_name ? <Text style={styles.detail}>👤 {item.customer_name}</Text> : null}
-      {item.phone ? <Text style={styles.detail}>📞 {item.phone}</Text> : null}
-      {item.bell ? <Text style={styles.detail}>🔔 Κουδούνι: {item.bell}</Text> : null}
-      {item.floor ? <Text style={styles.detail}>🏢 Όροφος {item.floor}</Text> : null}
-      {item.notes ? <Text style={styles.detail}>📝 {item.notes}</Text> : null}
-      {item.amount != null ? <Text style={styles.amount}>💵 {item.amount.toFixed(2)}€</Text> : null}
-      <Text style={styles.shop}>🏬 {(item as any).shops?.name}</Text>
+      {item.customer_name ? <Text style={styles.detail}>{item.customer_name}</Text> : null}
+      {item.phone ? <Text style={styles.detail}>{item.phone}</Text> : null}
+      {item.bell ? <Text style={styles.detail}>Κουδούνι: {item.bell}</Text> : null}
+      {item.floor ? <Text style={styles.detail}>Όροφος {item.floor}</Text> : null}
+      {item.notes ? <Text style={styles.detail}>{item.notes}</Text> : null}
+      {item.amount != null ? <Text style={styles.amount}>{item.amount.toFixed(2)}€</Text> : null}
+      <Text style={styles.shop}>{(item as any).shops?.name}</Text>
       <TouchableOpacity style={styles.completeBtn} onPress={() => completeOrder(item.id)}>
         <Text style={styles.completeBtnText}>✅ Ολοκλήρωση Παράδοσης</Text>
       </TouchableOpacity>
@@ -159,7 +159,7 @@ export default function MyOrdersScreen() {
           <View style={styles.modalCard}>
             {issueStep === 'choice' ? (
               <>
-                <Text style={styles.modalTitle}>⚠️ Πρόβλημα με την παραγγελία</Text>
+                <Text style={styles.modalTitle}>Πρόβλημα με την παραγγελία</Text>
                 <Text style={styles.modalSubtitle}>{issueOrder?.street}</Text>
 
                 <TouchableOpacity

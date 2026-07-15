@@ -38,12 +38,12 @@ export default function OrderDetailModalWeb({ order, onClose }: Props) {
           <button style={s.closeBtn} onClick={onClose}>✕</button>
         </div>
         <p style={s.meta}>
-          🏬 {order.shop_name ?? '—'} &nbsp;|&nbsp; 🛵 {order.driver_name ?? '—'}
+          {order.shop_name ?? '—'} &nbsp;|&nbsp; {order.driver_name ?? '—'}
         </p>
-        {order.amount != null && <p style={s.amount}>💵 {order.amount.toFixed(2)}€</p>}
+        {order.amount != null && <p style={s.amount}>{order.amount.toFixed(2)}€</p>}
 
         {duration && (
-          <div style={s.durationBox}>⏱ Χρόνος παράδοσης: {duration}</div>
+          <div style={s.durationBox}>Χρόνος παράδοσης: {duration}</div>
         )}
 
         <p style={s.sectionTitle}>Ιστορικό</p>

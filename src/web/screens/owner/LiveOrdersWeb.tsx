@@ -92,14 +92,22 @@ export default function LiveOrdersWeb() {
     setDrivers(options);
   }
 
+  // `.eq('status', 'pending')` makes this idempotent against a double-click:
+  // once the first click's UPDATE commits, a second click's WHERE clause no
+  // longer matches, so `.select().single()` returns no row and the second
+  // click's timeline log is skipped instead of duplicating it.
   async function assignDriver(orderId: string, driverId: string) {
     const driver = drivers.find(d => d.id === driverId);
-    await supabase
+    const { data } = await supabase
       .from('orders')
       .update({ driver_id: driverId, status: 'assigned', assigned_at: new Date().toISOString() })
-      .eq('id', orderId);
-    await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver?.name ?? 'διανομέας'} — σε διαδρομή`);
+      .eq('id', orderId)
+      .eq('status', 'pending')
+      .select('id')
+      .single();
     setAssigning(null);
+    if (!data) return;
+    await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver?.name ?? 'διανομέας'} — σε διαδρομή`);
   }
 
   // Lets the owner undo a mistaken order (wrong shop, duplicate, assigned to
@@ -188,10 +196,10 @@ export default function LiveOrdersWeb() {
                   <span style={cardStyles.title}>{item.street}</span>
                   <StatusBadge status={item.status} />
                 </div>
-                {item.customer_name && <div style={cardStyles.detail}>👤 {item.customer_name}</div>}
-                {item.phone && <div style={cardStyles.detail}>📞 {item.phone}</div>}
-                <div style={cardStyles.meta}>🏬 {item.shop_name}</div>
-                {item.driver_name && <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>🛵 {item.driver_name}</div>}
+                {item.customer_name && <div style={cardStyles.detail}>{item.customer_name}</div>}
+                {item.phone && <div style={cardStyles.detail}>{item.phone}</div>}
+                <div style={cardStyles.meta}>{item.shop_name}</div>
+                {item.driver_name && <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>{item.driver_name}</div>}
                 <div style={cardStyles.meta}>
                   {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
                 </div>

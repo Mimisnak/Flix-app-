@@ -157,7 +157,7 @@ export default function AvailableOrdersWeb() {
           const takenByMe = item.driver_id === userId;
           return (
             <span style={{ color: takenByMe ? colors.primary : colors.textSecondary, fontSize: 13, fontWeight: 600 }}>
-              {takenByMe ? '✋ Δική σου' : `🛵 Την έχει ο ${(row.original as any).drivers?.name ?? 'άλλος οδηγός'}`}
+              {takenByMe ? 'Δική σου' : `Την έχει ο ${(row.original as any).drivers?.name ?? 'άλλος οδηγός'}`}
             </span>
           );
         }
@@ -241,17 +241,17 @@ export default function AvailableOrdersWeb() {
                       {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  {item.customer_name && <div style={cardStyles.detail}>👤 {item.customer_name}</div>}
-                  {item.phone && <div style={cardStyles.detail}>📞 {item.phone}</div>}
-                  {item.amount != null && <div style={cardStyles.amount}>💵 {item.amount.toFixed(2)}€</div>}
-                  <div style={cardStyles.meta}>🏬 {(item as any).shops?.name ?? '—'}</div>
+                  {item.customer_name && <div style={cardStyles.detail}>{item.customer_name}</div>}
+                  {item.phone && <div style={cardStyles.detail}>{item.phone}</div>}
+                  {item.amount != null && <div style={cardStyles.amount}>{item.amount.toFixed(2)}€</div>}
+                  <div style={cardStyles.meta}>{(item as any).shops?.name ?? '—'}</div>
                   {takenByOther ? (
                     <div style={{ ...cardStyles.badge, background: 'rgba(148,163,184,0.12)', color: colors.textSecondary }}>
-                      🛵 Την έχει ο {(item as any).drivers?.name ?? 'άλλος οδηγός'}
+                      Την έχει ο {(item as any).drivers?.name ?? 'άλλος οδηγός'}
                     </div>
                   ) : takenByMe ? (
                     <div style={{ ...cardStyles.badge, background: colors.primaryHover, color: colors.primary }}>
-                      ✋ Δική σου
+                      Δική σου
                     </div>
                   ) : (
                     <button
@@ -324,7 +324,7 @@ const s: Record<string, React.CSSProperties> = {
     display: 'flex', alignItems: 'center', padding: '12px 16px',
     background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}`,
   },
-  statusBtn: { padding: '8px 20px', borderRadius: 20, fontSize: 14, fontWeight: 700, cursor: 'pointer' },
+  statusBtn: { padding: '8px 20px', borderRadius: 20, fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 },
   tableWrap: {
     background: colors.surface, borderRadius: 12,
     border: `1px solid ${colors.border}`, overflow: 'hidden',

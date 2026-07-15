@@ -91,11 +91,22 @@ export default function LiveOrdersScreen() {
     setDrivers(options);
   }
 
+  // `.eq('status', 'pending')` makes this idempotent against a double-tap:
+  // the assign buttons only render for pending orders, but stay visible/
+  // tappable until the realtime refetch re-renders the list — a second tap
+  // in that window used to re-run the update and log a second identical
+  // timeline entry. Once the first tap's UPDATE commits, this WHERE clause
+  // no longer matches, so `.select().single()` returns no row and the
+  // second tap's timeline log is skipped.
   const assignDriver = useCallback(async (orderId: string, driver: Driver) => {
-    await supabase
+    const { data } = await supabase
       .from('orders')
       .update({ driver_id: driver.id, status: 'assigned', assigned_at: new Date().toISOString() })
-      .eq('id', orderId);
+      .eq('id', orderId)
+      .eq('status', 'pending')
+      .select('id')
+      .single();
+    if (!data) return;
     await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver.name} — σε διαδρομή`);
   }, []);
 
@@ -147,16 +158,16 @@ export default function LiveOrdersScreen() {
           <Text style={styles.street}>{item.street}</Text>
           <View style={[styles.badge, item.status === 'pending' ? styles.badgePending : styles.badgeAssigned]}>
             <Text style={styles.badgeText}>
-              {item.status === 'pending' ? '🟡 Αναμονή' : '🛵 Διαδρομή'}
+              {item.status === 'pending' ? 'Αναμονή' : 'Διαδρομή'}
             </Text>
           </View>
         </View>
 
-        {item.customer_name ? <Text style={styles.detail}>👤 {item.customer_name}</Text> : null}
-        {item.phone ? <Text style={styles.detail}>📞 {item.phone}</Text> : null}
-        <Text style={styles.detail}>🏬 {(item as any).shops?.name ?? '—'}</Text>
+        {item.customer_name ? <Text style={styles.detail}>{item.customer_name}</Text> : null}
+        {item.phone ? <Text style={styles.detail}>{item.phone}</Text> : null}
+        <Text style={styles.detail}>{(item as any).shops?.name ?? '—'}</Text>
         {item.status === 'assigned' && (
-          <Text style={styles.detail}>🛵 {(item as any).drivers?.name}</Text>
+          <Text style={styles.detail}>{(item as any).drivers?.name}</Text>
         )}
         <Text style={styles.time}>
           {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
