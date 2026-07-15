@@ -197,14 +197,12 @@ export default function StatsWeb() {
       {/* KPI Cards */}
       <div style={s.kpiGrid}>
         <KpiCard
-          icon="📦"
           label="Σύνολο Παραγγελιών"
           value={stats.totalOrders.toString()}
           sub="στην επιλεγμένη περίοδο"
           accent={colors.primary}
         />
         <KpiCard
-          icon="✅"
           label="Παραδόθηκαν"
           value={stats.deliveredCount.toString()}
           sub={`${stats.totalOrders - stats.deliveredCount} σε εξέλιξη`}
@@ -214,7 +212,7 @@ export default function StatsWeb() {
 
       {/* Top Drivers */}
       <div>
-        <h3 style={s.sectionTitle}>🏆 Κατάταξη Οδηγών</h3>
+        <h3 style={s.sectionTitle}>Κατάταξη Οδηγών</h3>
         {isMobile ? (
           <div style={cardStyles.list}>
             {drivers.length === 0 ? (
@@ -276,7 +274,7 @@ export default function StatsWeb() {
 
       {/* Shop Breakdown */}
       <div>
-        <h3 style={s.sectionTitle}>🏬 Παραγγελίες ανά Μαγαζί</h3>
+        <h3 style={s.sectionTitle}>Παραγγελίες ανά Μαγαζί</h3>
         <div style={s.shopCard}>
           {shops.length === 0 ? (
             <p style={{ color: colors.textSecondary, textAlign: 'center', padding: '16px 0', margin: 0 }}>
@@ -308,17 +306,15 @@ export default function StatsWeb() {
 // ── KPI Card ─────────────────────────────────────────────────────
 
 interface KpiCardProps {
-  icon: string;
   label: string;
   value: string;
   sub: string;
   accent: string;
 }
 
-function KpiCard({ icon, label, value, sub, accent }: KpiCardProps) {
+function KpiCard({ label, value, sub, accent }: KpiCardProps) {
   return (
     <div style={{ ...s.kpiCard, borderTop: `3px solid ${accent}` }}>
-      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
       <p style={s.kpiLabel}>{label}</p>
       <p style={{ ...s.kpiValue, color: accent }}>{value}</p>
       <p style={s.kpiSub}>{sub}</p>

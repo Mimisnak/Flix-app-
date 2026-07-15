@@ -159,7 +159,7 @@ export default function AvailableOrdersScreen() {
       ) : loading ? (
         <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 60 }} />
       ) : orders.length === 0 ? (
-        <Text style={styles.center}>Δεν υπάρχουν διαθέσιμες παραγγελίες 🎉</Text>
+        <Text style={styles.center}>Δεν υπάρχουν διαθέσιμες παραγγελίες</Text>
       ) : (
         <FlatList
           data={orders}

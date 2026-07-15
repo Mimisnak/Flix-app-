@@ -74,7 +74,11 @@ export default function MyOrdersWeb() {
   }
 
   const cancelOrder = useCallback(async (orderId: string, shopId: string, reason: string) => {
-    await supabase.from('orders').update({ status: 'cancelled', cancel_reason: reason }).eq('id', orderId);
+    const { error } = await supabase.from('orders').update({ status: 'cancelled', cancel_reason: reason }).eq('id', orderId);
+    if (error) {
+      window.alert('Δεν ήταν δυνατή η ακύρωση της παραγγελίας. Δοκίμασε ξανά.');
+      return;
+    }
     await addOrderTimeline(orderId, `❌ Ακυρώθηκε από τον οδηγό — ${reason}`);
     setOrders(prev => prev.filter(o => o.id !== orderId));
     sendPushToUsers([shopId], '❌ Ακυρώθηκε', reason);
@@ -161,11 +165,11 @@ export default function MyOrdersWeb() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      <div style={{ color: colors.textSecondary, fontSize: 14 }}>
-        {orders.length === 0
-          ? 'Δεν έχεις ενεργές παραγγελίες'
-          : `${orders.length} παραγγελίες σε εξέλιξη`}
-      </div>
+      {orders.length > 0 && (
+        <div style={{ color: colors.textSecondary, fontSize: 14 }}>
+          {orders.length} παραγγελίες σε εξέλιξη
+        </div>
+      )}
 
       {isMobile ? (
         <div style={cardStyles.list}>
@@ -173,7 +177,6 @@ export default function MyOrdersWeb() {
             <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
           ) : orders.length === 0 ? (
             <div style={cardStyles.empty}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>🛵</div>
               Δεν έχεις ενεργές παραγγελίες
             </div>
           ) : (
@@ -229,8 +232,7 @@ export default function MyOrdersWeb() {
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ ...s.td, textAlign: 'center', padding: 52 }}>
-                  <div style={{ fontSize: 32, marginBottom: 10 }}>🛵</div>
-                  <p style={{ color: colors.textSecondary, margin: 0 }}>
+                      <p style={{ color: colors.textSecondary, margin: 0 }}>
                     Δεν έχεις ενεργές παραγγελίες
                   </p>
                 </td>

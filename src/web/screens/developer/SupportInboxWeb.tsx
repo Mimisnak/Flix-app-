@@ -7,10 +7,10 @@ import { formatOrderDateTime } from '../../../lib/orderHelpers';
 import { accountDisplayName } from '../../../lib/accounts';
 
 const ROLE_LABELS: Record<string, string> = {
-  owner: '👑 Διαχειριστής',
-  shop: '🏬 Μαγαζί',
-  driver: '🛵 Διανομέας',
-  developer: '👨‍💻 Developer',
+  owner: 'Διαχειριστής',
+  shop: 'Μαγαζί',
+  driver: 'Διανομέας',
+  developer: 'Developer',
 };
 
 interface Thread {

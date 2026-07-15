@@ -145,7 +145,7 @@ export default function DriverHistoryWeb() {
                     <StatusBadge status={o.status} />
                   </div>
                   {o.customer_name && <div style={cardStyles.detail}>{o.customer_name}</div>}
-                  <div style={cardStyles.meta}>🏬 {(o as any).shops?.name ?? '—'}</div>
+                  <div style={cardStyles.meta}>{(o as any).shops?.name ?? '—'}</div>
                   {delivery && (
                     <div style={{ color: '#22C55E', marginTop: 4, fontSize: 12, fontWeight: 600 }}>
                       {delivery.time} · διάρκεια {delivery.duration}

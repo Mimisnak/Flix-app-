@@ -204,13 +204,13 @@ export default function DirectoryWeb() {
             onClick={() => setTab('shop')}
             style={{ ...s.tabBtn, background: tab === 'shop' ? colors.primary : 'transparent', color: tab === 'shop' ? '#fff' : colors.textSecondary }}
           >
-            🏬 Μαγαζιά
+            Μαγαζιά
           </button>
           <button
             onClick={() => setTab('driver')}
             style={{ ...s.tabBtn, background: tab === 'driver' ? colors.primary : 'transparent', color: tab === 'driver' ? '#fff' : colors.textSecondary }}
           >
-            🛵 Οδηγοί
+            Οδηγοί
           </button>
         </div>
 

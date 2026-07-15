@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
+import { addOrderTimeline } from '../../lib/orderHelpers';
 import { Order } from '../../types';
 import { Colors } from '../../constants/colors';
 
@@ -77,10 +78,15 @@ export default function ShopOrdersScreen() {
 
   async function confirmCancel() {
     if (!cancelOrderId) return;
-    await supabase
+    const { error } = await supabase
       .from('orders')
       .update({ status: 'cancelled', cancel_reason: cancelReason })
       .eq('id', cancelOrderId);
+    if (error) {
+      Alert.alert('Σφάλμα', 'Δεν ήταν δυνατή η ακύρωση της παραγγελίας. Δοκίμασε ξανά.');
+      return;
+    }
+    await addOrderTimeline(cancelOrderId, '❌ Ακυρώθηκε από το μαγαζί');
     setCancelModalVisible(false);
     setCancelOrderId(null);
     setCancelReason('');

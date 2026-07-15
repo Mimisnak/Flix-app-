@@ -209,7 +209,7 @@ export default function LiveOrdersScreen() {
       {loading ? (
         <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 60 }} />
       ) : orders.length === 0 ? (
-        <Text style={styles.center}>Δεν υπάρχουν ενεργές παραγγελίες 🎉</Text>
+        <Text style={styles.center}>Δεν υπάρχουν ενεργές παραγγελίες</Text>
       ) : (
         <FlatList
           data={orders}

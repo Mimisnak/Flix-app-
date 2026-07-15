@@ -102,13 +102,13 @@ export default function DriverHistoryScreen() {
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.street}>{item.street}</Text>
-                {item.customer_name ? <Text style={styles.meta}>👤 {item.customer_name}</Text> : null}
-                <Text style={styles.meta}>🏬 {(item as any).shops?.name ?? '—'}</Text>
+                {item.customer_name ? <Text style={styles.meta}>{item.customer_name}</Text> : null}
+                <Text style={styles.meta}>{(item as any).shops?.name ?? '—'}</Text>
                 {deliveryInfo(item) && (
-                  <Text style={styles.deliveryInfo}>✅ {deliveryInfo(item)}</Text>
+                  <Text style={styles.deliveryInfo}>{deliveryInfo(item)}</Text>
                 )}
                 {item.status === 'cancelled' && item.cancel_reason && (
-                  <Text style={styles.cancelReason}>❌ {item.cancel_reason}</Text>
+                  <Text style={styles.cancelReason}>{item.cancel_reason}</Text>
                 )}
                 <Text style={styles.meta}>
                   {new Date(item.created_at).toLocaleString('el-GR', {
@@ -117,7 +117,7 @@ export default function DriverHistoryScreen() {
                 </Text>
               </View>
               <Text style={styles.statusIcon}>
-                {item.status === 'delivered' ? '✅' : item.status === 'cancelled' ? '❌' : '🛵'}
+                {item.status === 'delivered' ? 'Παραδόθηκε' : item.status === 'cancelled' ? 'Ακυρώθηκε' : 'Διαδρομή'}
               </Text>
             </View>
           )}
@@ -148,5 +148,5 @@ const styles = StyleSheet.create({
   meta: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
   deliveryInfo: { color: Colors.success, fontSize: 11, marginTop: 2, fontWeight: '600' },
   cancelReason: { color: Colors.error, fontSize: 11, marginTop: 2, fontStyle: 'italic' },
-  statusIcon: { fontSize: 22, marginLeft: 8 },
+  statusIcon: { fontSize: 11, fontWeight: '700', color: Colors.textSecondary, marginLeft: 8 },
 });

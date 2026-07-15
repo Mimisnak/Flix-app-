@@ -87,10 +87,14 @@ export default function MyOrdersScreen() {
 
   // Cancels the order outright (customer unreachable, or a custom reason).
   const cancelOrder = useCallback(async (orderId: string, shopId: string, reason: string) => {
-    await supabase
+    const { error } = await supabase
       .from('orders')
       .update({ status: 'cancelled', cancel_reason: reason })
       .eq('id', orderId);
+    if (error) {
+      Alert.alert('Σφάλμα', 'Δεν ήταν δυνατή η ακύρωση της παραγγελίας. Δοκίμασε ξανά.');
+      return;
+    }
     await addOrderTimeline(orderId, `❌ Ακυρώθηκε από τον οδηγό — ${reason}`);
     setOrders(prev => prev.filter(o => o.id !== orderId));
     sendPushToUsers([shopId], '❌ Ακυρώθηκε', reason);

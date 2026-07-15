@@ -225,7 +225,6 @@ export default function AvailableOrdersWeb() {
             <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
           ) : orders.length === 0 ? (
             <div style={cardStyles.empty}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>🎉</div>
               Δεν υπάρχουν διαθέσιμες παραγγελίες
             </div>
           ) : (
@@ -291,8 +290,7 @@ export default function AvailableOrdersWeb() {
               ) : table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ ...s.td, textAlign: 'center', padding: 52 }}>
-                    <div style={{ fontSize: 32, marginBottom: 10 }}>🎉</div>
-                    <p style={{ color: colors.textSecondary, margin: 0 }}>
+                          <p style={{ color: colors.textSecondary, margin: 0 }}>
                       Δεν υπάρχουν διαθέσιμες παραγγελίες
                     </p>
                   </td>

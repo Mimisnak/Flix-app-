@@ -175,13 +175,13 @@ export default function DirectoryScreen() {
           style={[styles.tab, tab === 'shop' && styles.tabActive]}
           onPress={() => setTab('shop')}
         >
-          <Text style={[styles.tabText, tab === 'shop' && styles.tabTextActive]}>🏬 Μαγαζιά</Text>
+          <Text style={[styles.tabText, tab === 'shop' && styles.tabTextActive]}>Μαγαζιά</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, tab === 'driver' && styles.tabActive]}
           onPress={() => setTab('driver')}
         >
-          <Text style={[styles.tabText, tab === 'driver' && styles.tabTextActive]}>🛵 Οδηγοί</Text>
+          <Text style={[styles.tabText, tab === 'driver' && styles.tabTextActive]}>Οδηγοί</Text>
         </TouchableOpacity>
       </View>
 

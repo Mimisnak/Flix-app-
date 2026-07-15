@@ -281,16 +281,16 @@ export default function HistoryWeb() {
                     <span style={cardStyles.title}>{o.street}</span>
                     <StatusBadge status={o.status} />
                   </div>
-                  <div style={cardStyles.detail}>🏬 {o.shop_name}</div>
-                  {o.customer_name && <div style={cardStyles.detail}>👤 {o.customer_name}</div>}
-                  {o.phone && <div style={cardStyles.detail}>📞 {o.phone}</div>}
-                  {o.driver_name && <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>🛵 {o.driver_name}</div>}
+                  <div style={cardStyles.detail}>{o.shop_name}</div>
+                  {o.customer_name && <div style={cardStyles.detail}>{o.customer_name}</div>}
+                  {o.phone && <div style={cardStyles.detail}>{o.phone}</div>}
+                  {o.driver_name && <div style={{ color: colors.primary, marginTop: 6, fontWeight: 600, fontSize: 13 }}>{o.driver_name}</div>}
                   {delivery && (
                     <div style={{ color: '#22C55E', marginTop: 4, fontSize: 12, fontWeight: 600 }}>
-                      ✅ {delivery.time} · διάρκεια {delivery.duration}
+                      {delivery.time} · διάρκεια {delivery.duration}
                     </div>
                   )}
-                  {o.cancel_reason && <div style={{ color: '#EF4444', marginTop: 4, fontSize: 12 }}>❌ {o.cancel_reason}</div>}
+                  {o.cancel_reason && <div style={{ color: '#EF4444', marginTop: 4, fontSize: 12 }}>{o.cancel_reason}</div>}
                   <div style={cardStyles.meta}>
                     {d.toLocaleDateString('el-GR')} · {d.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
                   </div>

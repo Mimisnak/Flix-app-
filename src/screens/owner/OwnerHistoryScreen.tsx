@@ -103,10 +103,10 @@ export default function OwnerHistoryScreen() {
 
   const statusFilters: { key: StatusFilter; label: string }[] = [
     { key: 'all', label: 'Όλες' },
-    { key: 'pending', label: '🟡' },
-    { key: 'assigned', label: '🛵' },
-    { key: 'delivered', label: '✅' },
-    { key: 'cancelled', label: '❌' },
+    { key: 'pending', label: 'Αναμονή' },
+    { key: 'assigned', label: 'Διαδρομή' },
+    { key: 'delivered', label: 'Παραδόθηκαν' },
+    { key: 'cancelled', label: 'Ακυρωμένες' },
   ];
 
   const dateFilters: { key: DateFilter; label: string }[] = [
@@ -163,11 +163,11 @@ export default function OwnerHistoryScreen() {
         </View>
         <View style={styles.stat}>
           <Text style={styles.statNum}>{delivered}</Text>
-          <Text style={styles.statLabel}>✅ Παρεδόθη</Text>
+          <Text style={styles.statLabel}>Παρεδόθη</Text>
         </View>
         <View style={styles.stat}>
           <Text style={styles.statNum}>{cancelled}</Text>
-          <Text style={styles.statLabel}>❌ Ακυρώθη</Text>
+          <Text style={styles.statLabel}>Ακυρώθη</Text>
         </View>
         <TouchableOpacity
           style={[styles.exportBtn, (exporting || orders.length === 0) && { opacity: 0.5 }]}
@@ -226,7 +226,7 @@ export default function OwnerHistoryScreen() {
               onPress={() => setDriverFilter(d.id)}
             >
               <Text style={[styles.driverChipText, driverFilter === d.id && styles.driverChipTextActive]}>
-                🛵 {d.name}
+                {d.name}
               </Text>
             </TouchableOpacity>
           ))}
@@ -247,16 +247,16 @@ export default function OwnerHistoryScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.street}>{item.street}</Text>
                 <Text style={styles.meta}>
-                  🏬 {(item as any).shops?.name ?? '—'}  |  🛵 {(item as any).drivers?.name ?? '—'}
+                  {(item as any).shops?.name ?? '—'}  |  {(item as any).drivers?.name ?? '—'}
                 </Text>
                 {item.amount != null && (
-                  <Text style={styles.amount}>💵 {item.amount.toFixed(2)}€</Text>
+                  <Text style={styles.amount}>{item.amount.toFixed(2)}€</Text>
                 )}
                 {item.cancel_reason && (
-                  <Text style={styles.cancelReason}>❌ {item.cancel_reason}</Text>
+                  <Text style={styles.cancelReason}>{item.cancel_reason}</Text>
                 )}
                 {deliveryInfo(item) && (
-                  <Text style={styles.deliveryInfo}>✅ {deliveryInfo(item)}</Text>
+                  <Text style={styles.deliveryInfo}>{deliveryInfo(item)}</Text>
                 )}
                 <Text style={styles.meta}>
                   {new Date(item.created_at).toLocaleString('el-GR', {
@@ -265,7 +265,7 @@ export default function OwnerHistoryScreen() {
                 </Text>
               </View>
               <Text style={styles.statusIcon}>
-                {item.status === 'delivered' ? '✅' : item.status === 'assigned' ? '🛵' : item.status === 'cancelled' ? '❌' : '🟡'}
+                {item.status === 'delivered' ? 'Παραδόθηκε' : item.status === 'assigned' ? 'Διαδρομή' : item.status === 'cancelled' ? 'Ακυρώθηκε' : 'Αναμονή'}
               </Text>
             </TouchableOpacity>
           )}
@@ -322,5 +322,5 @@ const styles = StyleSheet.create({
   amount: { color: Colors.success, fontSize: 12, fontWeight: '700', marginTop: 2 },
   cancelReason: { color: Colors.error, fontSize: 11, marginTop: 2, fontStyle: 'italic' },
   deliveryInfo: { color: Colors.success, fontSize: 11, marginTop: 2, fontWeight: '600' },
-  statusIcon: { fontSize: 20, marginLeft: 8 },
+  statusIcon: { fontSize: 11, fontWeight: '700', color: Colors.textSecondary, marginLeft: 8 },
 });

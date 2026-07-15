@@ -68,9 +68,13 @@ export default function ShopOrdersWeb() {
 
   async function confirmCancel() {
     if (!cancelTarget) return;
-    await supabase.from('orders')
+    const { error } = await supabase.from('orders')
       .update({ status: 'cancelled', cancel_reason: cancelReason })
       .eq('id', cancelTarget.id);
+    if (error) {
+      window.alert('Δεν ήταν δυνατή η ακύρωση της παραγγελίας. Δοκίμασε ξανά.');
+      return;
+    }
     await supabase.from('order_timeline').insert({ order_id: cancelTarget.id, event: '❌ Ακυρώθηκε από το μαγαζί' });
     setCancelTarget(null);
     setCancelReason('');
@@ -175,7 +179,6 @@ export default function ShopOrdersWeb() {
             <p style={{ color: colors.textSecondary, textAlign: 'center' }}>Φόρτωση...</p>
           ) : orders.length === 0 ? (
             <div style={cardStyles.empty}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
               Δεν υπάρχουν ενεργές παραγγελίες
             </div>
           ) : (
@@ -239,8 +242,7 @@ export default function ShopOrdersWeb() {
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ ...s.td, textAlign: 'center', padding: 52 }}>
-                  <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
-                  <p style={{ color: colors.textSecondary, margin: 0 }}>Δεν υπάρχουν ενεργές παραγγελίες</p>
+                      <p style={{ color: colors.textSecondary, margin: 0 }}>Δεν υπάρχουν ενεργές παραγγελίες</p>
                 </td>
               </tr>
             ) : (

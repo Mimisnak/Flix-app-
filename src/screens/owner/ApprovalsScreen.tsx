@@ -74,7 +74,7 @@ export default function ApprovalsScreen() {
       <View style={styles.cardInfo}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.role}>
-          {item.role === 'shop' ? '🏬 Μαγαζί' : '🛵 Διανομέας'}
+          {item.role === 'shop' ? 'Μαγαζί' : 'Διανομέας'}
         </Text>
       </View>
       <View style={styles.actions}>

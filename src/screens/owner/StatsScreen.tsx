@@ -171,7 +171,7 @@ export default function StatsScreen() {
         <>
           {/* Driver Leaderboard */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🏆 Leaderboard Drivers</Text>
+            <Text style={styles.sectionTitle}>Leaderboard Drivers</Text>
             {driverStats.length === 0 ? (
               <Text style={styles.empty}>Δεν υπάρχουν δεδομένα</Text>
             ) : (
@@ -185,11 +185,11 @@ export default function StatsScreen() {
                   </View>
                   <View style={styles.statPills}>
                     <View style={styles.pillDelivered}>
-                      <Text style={styles.pillText}>✅ {d.delivered}</Text>
+                      <Text style={styles.pillText}>Παρ. {d.delivered}</Text>
                     </View>
                     {d.assigned > 0 && (
                       <View style={styles.pillAssigned}>
-                        <Text style={styles.pillText}>🛵 {d.assigned}</Text>
+                        <Text style={styles.pillText}>Ενεργ. {d.assigned}</Text>
                       </View>
                     )}
                   </View>
@@ -200,7 +200,7 @@ export default function StatsScreen() {
 
           {/* Shop Breakdown */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🏬 Παραγγελίες ανά Μαγαζί</Text>
+            <Text style={styles.sectionTitle}>Παραγγελίες ανά Μαγαζί</Text>
             {shopStats.length === 0 ? (
               <Text style={styles.empty}>Δεν υπάρχουν δεδομένα</Text>
             ) : (

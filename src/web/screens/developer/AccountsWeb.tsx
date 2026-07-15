@@ -12,20 +12,20 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { cardStyles } from '../../components/cardStyles';
 
 const ROLE_LABELS: Record<UserRole, string> = {
-  owner: '👑 Διαχειριστής',
-  shop: '🏬 Μαγαζί',
-  driver: '🛵 Διανομέας',
-  developer: '👨‍💻 Developer',
+  owner: 'Διαχειριστής',
+  shop: 'Μαγαζί',
+  driver: 'Διανομέας',
+  developer: 'Developer',
 };
 
 type RoleFilter = 'all' | UserRole;
 
 const FILTERS: { key: RoleFilter; label: string }[] = [
   { key: 'all', label: 'Όλοι' },
-  { key: 'shop', label: '🏬 Μαγαζιά' },
-  { key: 'driver', label: '🛵 Οδηγοί' },
-  { key: 'owner', label: '👑 Owners' },
-  { key: 'developer', label: '👨‍💻 Devs' },
+  { key: 'shop', label: 'Μαγαζιά' },
+  { key: 'driver', label: 'Οδηγοί' },
+  { key: 'owner', label: 'Owners' },
+  { key: 'developer', label: 'Devs' },
 ];
 
 const col = createColumnHelper<AccountEntry>();
