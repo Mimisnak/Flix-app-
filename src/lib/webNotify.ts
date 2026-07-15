@@ -21,6 +21,9 @@ export function requestWebNotificationPermission(): void {
   }
 }
 
+// Two quick tones (a "ding-dong") at a higher gain than a single soft beep —
+// louder and harder to miss, since the admin may have this tab in the
+// background with several others open.
 function playBeep(): void {
   try {
     const Ctx = window.AudioContext || (window as any).webkitAudioContext;
@@ -29,17 +32,22 @@ function playBeep(): void {
     const ctx = audioCtx;
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.5);
+    const tone = (freq: number, startAt: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(0.6, startAt + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startAt);
+      osc.stop(startAt + 0.35);
+    };
+
+    tone(880, ctx.currentTime);
+    tone(1046.5, ctx.currentTime + 0.18);
   } catch (_) {
     // Autoplay/audio restrictions vary by browser — never block the caller.
   }

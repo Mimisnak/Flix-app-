@@ -12,6 +12,7 @@ import StatusBadge from '../../components/StatusBadge';
 import { addOrderTimeline } from '../../../lib/orderHelpers';
 import { sendPushToUsers } from '../../../lib/notifications';
 import { isReallyOnline } from '../../../lib/onlineStatus';
+import { notifyWeb } from '../../../lib/webNotify';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { cardStyles } from '../../components/cardStyles';
 
@@ -33,6 +34,11 @@ export default function LiveOrdersWeb() {
     const channel = supabase
       .channel('web-live-orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchOrders)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload: any) => {
+        if (payload.new?.status === 'pending') {
+          notifyWeb('Νέα παραγγελία', payload.new.street ?? 'Νέα παραγγελία από μαγαζί');
+        }
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchDrivers)
       .subscribe();
 

@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
-import { sendPushToOnlineDrivers } from '../../lib/notifications';
+import { sendPushToOnlineDrivers, sendPushToOwners } from '../../lib/notifications';
 import { Customer } from '../../types';
 import { Colors } from '../../constants/colors';
 
@@ -180,6 +180,7 @@ export default function NewOrderScreen() {
 
     await saveCustomer(user.id);
     sendPushToOnlineDrivers('🔔 Νέα παραγγελία!', `📍 ${street.trim()}`);
+    sendPushToOwners('🔔 Νέα παραγγελία από μαγαζί', `📍 ${street.trim()}`);
 
     setLoading(false);
     navigation.goBack();

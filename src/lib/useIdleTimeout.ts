@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { supabase } from './supabase';
 import { alert } from './alert';
 import { HEARTBEAT_INTERVAL_MS } from './onlineStatus';
@@ -43,10 +43,25 @@ export function useIdleTimeout(enabled: boolean, userId: string | null) {
     // even if it never sends a clean sign-out (crash, force-quit, dead
     // battery, lost connectivity all skip that). See src/lib/onlineStatus.ts.
     let heartbeat: ReturnType<typeof setInterval> | undefined;
+    let appStateSub: { remove: () => void } | undefined;
     if (userId) {
       const beat = () => supabase.from('users').update({ last_seen_at: new Date().toISOString() }).eq('id', userId);
       beat();
       heartbeat = setInterval(beat, HEARTBEAT_INTERVAL_MS);
+
+      // A locked screen or backgrounded app pauses this setInterval (both iOS
+      // and Android throttle JS timers once the app isn't foregrounded), so
+      // last_seen_at goes stale and the driver flickers to "offline" for the
+      // owner even though they never went off shift. Merely bringing the app
+      // back to foreground does NOT resume/catch-up the paused interval on
+      // its own — only a full app restart did, which is why re-toggling shift
+      // was the only thing that visibly fixed it. Sending a beat the instant
+      // the app becomes active again closes that gap without needing that.
+      if (Platform.OS !== 'web') {
+        appStateSub = AppState.addEventListener('change', (state) => {
+          if (state === 'active') beat();
+        });
+      }
     }
 
     let removeWebListeners: (() => void) | undefined;
@@ -59,6 +74,7 @@ export function useIdleTimeout(enabled: boolean, userId: string | null) {
     return () => {
       clearInterval(interval);
       if (heartbeat) clearInterval(heartbeat);
+      appStateSub?.remove();
       removeWebListeners?.();
     };
   }, [enabled, userId, resetActivity]);

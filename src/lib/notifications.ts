@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { supabase } from './supabase';
 
@@ -11,8 +12,24 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Android ignores a push's requested sound/priority unless the channel it
+// lands on was itself created with high importance — otherwise it can be
+// silently downgraded to a quiet, non-heads-up notification regardless of
+// what the push payload asks for. MAX importance + a vibration pattern is
+// what actually makes these orders feel urgent/hard to miss on Android.
 export async function registerPushToken(): Promise<void> {
   try {
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'Παραγγελίες',
+        importance: Notifications.AndroidImportance.MAX,
+        sound: 'default',
+        vibrationPattern: [0, 250, 250, 250],
+        enableVibrate: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      });
+    }
+
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
     if (existingStatus !== 'granted') {
@@ -56,7 +73,11 @@ export async function sendPushToUsers(
         'Accept': 'application/json',
         'Accept-Encoding': 'gzip, deflate',
       },
-      body: JSON.stringify(tokens.map((to: string) => ({ to, sound: 'default', title, body }))),
+      // priority: 'high' asks Android/FCM to wake the device and deliver the
+      // notification immediately as a heads-up alert instead of queuing it
+      // silently — combined with the MAX-importance channel above, this is
+      // what makes an incoming order impossible to miss.
+      body: JSON.stringify(tokens.map((to: string) => ({ to, sound: 'default', priority: 'high', title, body }))),
     });
   } catch (_) {}
 }
@@ -69,6 +90,14 @@ export async function sendPushToOnlineDrivers(title: string, body: string): Prom
       .eq('role', 'driver')
       .eq('online_status', true);
 
+    if (!data?.length) return;
+    await sendPushToUsers(data.map((u: any) => u.id), title, body);
+  } catch (_) {}
+}
+
+export async function sendPushToOwners(title: string, body: string): Promise<void> {
+  try {
+    const { data } = await supabase.from('users').select('id').eq('role', 'owner');
     if (!data?.length) return;
     await sendPushToUsers(data.map((u: any) => u.id), title, body);
   } catch (_) {}

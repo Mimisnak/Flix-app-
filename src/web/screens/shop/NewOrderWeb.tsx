@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { sendPushToOnlineDrivers } from '../../../lib/notifications';
+import { sendPushToOnlineDrivers, sendPushToOwners } from '../../../lib/notifications';
 import { colors } from '../../theme';
 import { Customer } from '../../../types';
 
@@ -143,6 +143,7 @@ export default function NewOrderWeb() {
     await supabase.from('order_timeline').insert({ order_id: order.id, event: '🟡 Βγήκε παραγγελία' });
     await saveCustomer(user.id);
     sendPushToOnlineDrivers('🔔 Νέα παραγγελία!', `📍 ${street.trim()}`);
+    sendPushToOwners('🔔 Νέα παραγγελία από μαγαζί', `📍 ${street.trim()}`);
 
     setPhone(''); setCustomerName(''); setStreet(''); setBell(''); setFloor(''); setNotes(''); setAmount('');
     setSuccess(true);
