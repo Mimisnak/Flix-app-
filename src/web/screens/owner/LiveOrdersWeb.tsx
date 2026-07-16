@@ -26,6 +26,7 @@ export default function LiveOrdersWeb() {
   const [drivers, setDrivers] = useState<DriverOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState<string | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -98,22 +99,30 @@ export default function LiveOrdersWeb() {
     setDrivers(options);
   }
 
-  // `.eq('status', 'pending')` makes this idempotent against a double-click:
-  // once the first click's UPDATE commits, a second click's WHERE clause no
-  // longer matches, so `.select().single()` returns no row and the second
-  // click's timeline log is skipped instead of duplicating it.
-  async function assignDriver(orderId: string, driverId: string) {
+  // Also used to REASSIGN an already-assigned order to a different driver
+  // ("Αλλαγή" button below) — an earlier `.eq('status', 'pending')` guard
+  // (meant to stop a double-click from logging the same timeline entry
+  // twice) accidentally blocked that entirely, since a reassignment target
+  // is already 'assigned', not 'pending'. Double-click protection now lives
+  // in `savingId` (disables the dropdown for this order while in flight).
+  async function assignDriver(orderId: string, driverId: string, previousDriverId?: string | null) {
+    if (savingId === orderId) return;
+    setSavingId(orderId);
     const driver = drivers.find(d => d.id === driverId);
-    const { data } = await supabase
+    const { error } = await supabase
       .from('orders')
       .update({ driver_id: driverId, status: 'assigned', assigned_at: new Date().toISOString() })
-      .eq('id', orderId)
-      .eq('status', 'pending')
-      .select('id')
-      .single();
+      .eq('id', orderId);
     setAssigning(null);
-    if (!data) return;
+    setSavingId(null);
+    if (error) {
+      window.alert('Δεν ήταν δυνατή η ανάθεση της παραγγελίας. Δοκίμασε ξανά.');
+      return;
+    }
     await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver?.name ?? 'διανομέας'} — σε διαδρομή`);
+    if (previousDriverId && previousDriverId !== driverId) {
+      sendPushToUsers([previousDriverId], 'Ανατέθηκε αλλού', 'Ο διαχειριστής έδωσε αυτή την παραγγελία σε άλλον οδηγό.');
+    }
   }
 
   // Lets the owner undo a mistaken order (wrong shop, duplicate, assigned to
@@ -293,7 +302,7 @@ interface AssignCellProps {
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
-  onAssign: (orderId: string, driverId: string) => void;
+  onAssign: (orderId: string, driverId: string, previousDriverId?: string | null) => void;
 }
 
 function AssignCell({ order, drivers, isOpen, onOpen, onClose, onAssign }: AssignCellProps) {
@@ -326,8 +335,13 @@ function AssignCell({ order, drivers, isOpen, onOpen, onClose, onAssign }: Assig
       );
       if (!confirmed) { e.target.value = ''; return; }
     }
-    onAssign(order.id, driverId);
+    onAssign(order.id, driverId, order.driver_id);
   }
+
+  // For an already-assigned order this dropdown doubles as "give it to
+  // someone else instead" — exclude the driver who already has it, since
+  // picking them again would be a meaningless no-op reassignment.
+  const pickableDrivers = drivers.filter(d => d.id !== order.driver_id);
 
   return (
     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -338,9 +352,9 @@ function AssignCell({ order, drivers, isOpen, onOpen, onClose, onAssign }: Assig
         onChange={handleChange}
       >
         <option value="" disabled>Επιλογή οδηγού...</option>
-        {drivers.length === 0
+        {pickableDrivers.length === 0
           ? <option disabled>Κανένας ενεργός οδηγός</option>
-          : drivers.map(d => <option key={d.id} value={d.id}>{d.online ? '🟢' : '⚫'} {d.name}</option>)
+          : pickableDrivers.map(d => <option key={d.id} value={d.id}>{d.online ? '🟢' : '⚫'} {d.name}</option>)
         }
       </select>
       <button onClick={onClose} style={{ ...s.btn, background: 'transparent', color: colors.textSecondary, padding: '5px 8px' }}>

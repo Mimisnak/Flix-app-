@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase';
 import { Colors } from '../constants/colors';
 import { alert } from '../lib/alert';
 import { validateName } from '../lib/validateName';
+import { registrationGuard } from '../lib/registrationGuard';
 
 type Role = 'shop' | 'driver';
 
@@ -57,6 +58,11 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
+    // signUp() creates a session immediately, which independently fires a
+    // SIGNED_IN event in AppNavigator — that would otherwise race ahead of
+    // the create_user_profile() RPC below and show a scary "account not
+    // found" alert a split second before this screen's own success alert.
+    registrationGuard.inProgress = true;
 
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
@@ -69,6 +75,7 @@ export default function RegisterScreen() {
       } else {
         alert('Σφάλμα', error.message);
       }
+      registrationGuard.inProgress = false;
       setLoading(false);
       return;
     }
@@ -79,6 +86,7 @@ export default function RegisterScreen() {
     // to see which already have an account. Needs its own check.
     if (data.user && data.user.identities && data.user.identities.length === 0) {
       alert('Σφάλμα', 'Αυτό το email χρησιμοποιείται ήδη από άλλο λογαριασμό.');
+      registrationGuard.inProgress = false;
       setLoading(false);
       return;
     }
@@ -86,6 +94,7 @@ export default function RegisterScreen() {
     const userId = data.user?.id;
     if (!userId) {
       alert('Σφάλμα', 'Δεν δημιουργήθηκε χρήστης. Δοκίμασε ξανά.');
+      registrationGuard.inProgress = false;
       setLoading(false);
       return;
     }
@@ -98,11 +107,13 @@ export default function RegisterScreen() {
 
     if (profileError) {
       alert('Σφάλμα', profileError.message);
+      registrationGuard.inProgress = false;
       setLoading(false);
       return;
     }
 
     await supabase.auth.signOut();
+    registrationGuard.inProgress = false;
     setLoading(false);
 
     alert(

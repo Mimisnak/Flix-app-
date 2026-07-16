@@ -86,6 +86,27 @@ export default function AccountsScreen() {
     );
   }
 
+  // Permanent — wipes the account's orders/history/customers too (see
+  // delete_account in supabase-setup.sql). Only ever targets shop/driver
+  // accounts, same restriction the owner's Directory screen already has.
+  function deleteAccount(entry: AccountEntry) {
+    Alert.alert(
+      'Διαγραφή Λογαριασμού',
+      `Θέλεις σίγουρα να διαγράψεις μόνιμα τον/την "${entry.name}"; Θα σβηστεί και όλο το ιστορικό παραγγελιών του/της. Δεν αναιρείται.`,
+      [
+        { text: 'Ακύρωση', style: 'cancel' },
+        {
+          text: 'Διαγραφή',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase.rpc('delete_account', { p_user_id: entry.id });
+            if (error) Alert.alert('Σφάλμα', error.message);
+          },
+        },
+      ]
+    );
+  }
+
   async function changeRole(entry: AccountEntry, newRole: UserRole) {
     Alert.alert(
       'Αλλαγή Ρόλου',
@@ -190,6 +211,11 @@ export default function AccountsScreen() {
                     {item.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
                   </Text>
                 </TouchableOpacity>
+                {(item.role === 'shop' || item.role === 'driver') && (
+                  <TouchableOpacity style={styles.deleteBtn} onPress={() => deleteAccount(item)}>
+                    <Text style={styles.deleteBtnText}>🗑️ Διαγραφή</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           )}
@@ -286,6 +312,8 @@ const styles = StyleSheet.create({
   actionBtnText: { fontWeight: 'bold', fontSize: 12 },
   deactivateBtnText: { color: Colors.error },
   activateBtnText: { color: Colors.success },
+  deleteBtn: { flexGrow: 1, minWidth: '30%', padding: 10, borderRadius: 10, alignItems: 'center', backgroundColor: 'rgba(239, 68, 68, 0.15)', borderWidth: 1, borderColor: Colors.error },
+  deleteBtnText: { color: Colors.error, fontWeight: 'bold', fontSize: 12 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
   modalCard: { backgroundColor: Colors.surface, borderRadius: 20, padding: 24, width: '85%', borderWidth: 1, borderColor: Colors.border },
   modalTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 16 },

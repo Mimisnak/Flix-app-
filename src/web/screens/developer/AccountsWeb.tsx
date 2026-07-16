@@ -78,6 +78,15 @@ export default function AccountsWeb() {
     await supabase.from('users').update({ active: !entry.active, online_status: false }).eq('id', entry.id);
   }
 
+  // Permanent — wipes the account's orders/history/customers too (see
+  // delete_account in supabase-setup.sql). Only ever targets shop/driver
+  // accounts, same restriction the owner's Directory screen already has.
+  async function deleteAccount(entry: AccountEntry) {
+    if (!window.confirm(`Θέλεις σίγουρα να διαγράψεις μόνιμα τον/την "${entry.name}"; Θα σβηστεί και όλο το ιστορικό παραγγελιών του/της. Δεν αναιρείται.`)) return;
+    const { error } = await supabase.rpc('delete_account', { p_user_id: entry.id });
+    if (error) window.alert(error.message);
+  }
+
   async function changeRole(entry: AccountEntry, newRole: UserRole) {
     if (!window.confirm(`Να γίνει ο/η "${entry.name}" ${ROLE_LABELS[newRole]}; Θα αποκτήσει αμέσως πρόσβαση με τον νέο ρόλο.`)) return;
     const { error } = await supabase.rpc('promote_user_role', { p_user_id: entry.id, p_new_role: newRole });
@@ -152,6 +161,9 @@ export default function AccountsWeb() {
           >
             {row.original.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
           </button>
+          {(row.original.role === 'shop' || row.original.role === 'driver') && (
+            <button style={s.deleteBtn} onClick={() => deleteAccount(row.original)}>🗑️ Διαγραφή</button>
+          )}
         </div>
       ),
     }),
@@ -211,6 +223,9 @@ export default function AccountsWeb() {
                   >
                     {entry.active ? '🚫 Απενεργοποίηση' : '✓ Ενεργοποίηση'}
                   </button>
+                  {(entry.role === 'shop' || entry.role === 'driver') && (
+                    <button style={s.deleteBtn} onClick={() => deleteAccount(entry)}>🗑️ Διαγραφή</button>
+                  )}
                 </div>
               </div>
             ))
@@ -307,6 +322,10 @@ const s: Record<string, React.CSSProperties> = {
   actionBtn: { padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
   deactivateBtn: { background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.4)', color: '#EF4444' },
   activateBtn: { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.4)', color: '#22C55E' },
+  deleteBtn: {
+    padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+    background: 'rgba(239,68,68,0.15)', border: '1px solid #EF4444', color: '#EF4444',
+  },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   modal: { background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 20, padding: 28, width: 380, maxWidth: '90vw' },
   roleOption: {

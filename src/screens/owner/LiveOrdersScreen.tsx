@@ -14,6 +14,7 @@ export default function LiveOrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [drivers, setDrivers] = useState<DriverOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -91,36 +92,45 @@ export default function LiveOrdersScreen() {
     setDrivers(options);
   }
 
-  // `.eq('status', 'pending')` makes this idempotent against a double-tap:
-  // the assign buttons only render for pending orders, but stay visible/
-  // tappable until the realtime refetch re-renders the list — a second tap
-  // in that window used to re-run the update and log a second identical
-  // timeline entry. Once the first tap's UPDATE commits, this WHERE clause
-  // no longer matches, so `.select().single()` returns no row and the
-  // second tap's timeline log is skipped.
-  const assignDriver = useCallback(async (orderId: string, driver: Driver) => {
-    const { data } = await supabase
-      .from('orders')
-      .update({ driver_id: driver.id, status: 'assigned', assigned_at: new Date().toISOString() })
-      .eq('id', orderId)
-      .eq('status', 'pending')
-      .select('id')
-      .single();
-    if (!data) return;
-    await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver.name} — σε διαδρομή`);
-  }, []);
+  // Also used to REASSIGN an already-assigned order to a different driver —
+  // an earlier `.eq('status', 'pending')` guard (meant to stop a double-tap
+  // from logging the same timeline entry twice) accidentally blocked that
+  // entirely, since a reassignment target is already 'assigned', not
+  // 'pending'. Double-tap protection now lives in `busyOrderId` below
+  // (disables the buttons for this order while a request is in flight)
+  // instead of a DB-level status check.
+  const assignDriver = useCallback(async (orderId: string, driver: Driver, previousDriverId?: string | null) => {
+    if (busyOrderId === orderId) return;
+    setBusyOrderId(orderId);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ driver_id: driver.id, status: 'assigned', assigned_at: new Date().toISOString() })
+        .eq('id', orderId);
+      if (error) {
+        Alert.alert('Σφάλμα', 'Δεν ήταν δυνατή η ανάθεση της παραγγελίας. Δοκίμασε ξανά.');
+        return;
+      }
+      await addOrderTimeline(orderId, `🛵 Πήρε ο ${driver.name} — σε διαδρομή`);
+      if (previousDriverId && previousDriverId !== driver.id) {
+        sendPushToUsers([previousDriverId], 'Ανατέθηκε αλλού', 'Ο διαχειριστής έδωσε αυτή την παραγγελία σε άλλον οδηγό.');
+      }
+    } finally {
+      setBusyOrderId(null);
+    }
+  }, [busyOrderId]);
 
   // Offline drivers are selectable (owner may have called them directly),
   // but get a confirmation first so it isn't an accidental tap — the driver
   // won't see the order pop up on their own screen unless/until they're online.
-  const handleAssignPress = useCallback((orderId: string, driver: DriverOption) => {
-    if (driver.online) { assignDriver(orderId, driver); return; }
+  const handleAssignPress = useCallback((orderId: string, driver: DriverOption, previousDriverId?: string | null) => {
+    if (driver.online) { assignDriver(orderId, driver, previousDriverId); return; }
     Alert.alert(
       'Ο οδηγός είναι εκτός σύνδεσης',
       `Ο ${driver.name} δεν είναι σε βάρδια αυτή τη στιγμή. Να του ανατεθεί η παραγγελία;`,
       [
         { text: 'Ακύρωση', style: 'cancel' },
-        { text: 'Ανάθεση', onPress: () => assignDriver(orderId, driver) },
+        { text: 'Ανάθεση', onPress: () => assignDriver(orderId, driver, previousDriverId) },
       ]
     );
   }, [assignDriver]);
@@ -173,28 +183,36 @@ export default function LiveOrdersScreen() {
           {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
         </Text>
 
-        {item.status === 'pending' && drivers.length > 0 && (
-          <View style={styles.assignRow}>
-            <Text style={styles.assignLabel}>Ανάθεση σε:</Text>
-            <View style={styles.assignBtns}>
-              {drivers.map(d => (
-                <TouchableOpacity
-                  key={d.id}
-                  style={styles.assignBtn}
-                  onPress={() => handleAssignPress(item.id, d)}
-                >
-                  <Text style={styles.assignBtnText}>{d.online ? '🟢' : '⚫'} {d.name}</Text>
-                </TouchableOpacity>
-              ))}
+        {(item.status === 'pending' || item.status === 'assigned') && (() => {
+          // For an already-assigned order this list doubles as "give it to
+          // someone else instead" — exclude the driver who already has it
+          // (tapping them again would be a meaningless no-op reassignment).
+          const pickableDrivers = drivers.filter(d => d.id !== item.driver_id);
+          const busy = busyOrderId === item.id;
+          return pickableDrivers.length > 0 && (
+            <View style={styles.assignRow}>
+              <Text style={styles.assignLabel}>{item.status === 'pending' ? 'Ανάθεση σε:' : 'Αλλαγή σε:'}</Text>
+              <View style={styles.assignBtns}>
+                {pickableDrivers.map(d => (
+                  <TouchableOpacity
+                    key={d.id}
+                    style={[styles.assignBtn, busy && { opacity: 0.5 }]}
+                    disabled={busy}
+                    onPress={() => handleAssignPress(item.id, d, item.driver_id)}
+                  >
+                    <Text style={styles.assignBtnText}>{d.online ? '🟢' : '⚫'} {d.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
-        )}
+          );
+        })()}
 
         <TouchableOpacity style={styles.cancelBtn} onPress={() => cancelOrder(item)}>
           <Text style={styles.cancelBtnText}>✕ Ακύρωση</Text>
         </TouchableOpacity>
       </View>
-  ), [drivers, handleAssignPress, cancelOrder]);
+  ), [drivers, handleAssignPress, cancelOrder, busyOrderId]);
 
   return (
     <View style={styles.container}>

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { supabase, isPasswordRecoveryLink } from '../lib/supabase';
+import { registrationGuard } from '../lib/registrationGuard';
 import { alert } from '../lib/alert';
 import { registerPushToken } from '../lib/notifications';
 import { isRememberMeDisabled } from '../lib/rememberMe';
@@ -69,6 +70,12 @@ export default function AppNavigator() {
         setScreen('auth');
       } else if (event === 'SIGNED_IN') {
         if (isRecoveryRef.current) return;
+        // signUp() on RegisterScreen fires this same event immediately,
+        // racing ahead of its own create_user_profile() RPC call — querying
+        // the users table here before that row exists showed a scary
+        // "account not found" alert right before Register's own success
+        // one. See src/lib/registrationGuard.ts.
+        if (registrationGuard.inProgress) return;
         await fetchRoleAndNavigate(session.user.id);
       }
     });
