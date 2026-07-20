@@ -38,6 +38,7 @@ yarn-error.*
 # reason to publish it; *firebase-adminsdk*.json is a real secret and must
 # never be committed.
 google-services.json
+google-services.dev.json
 *firebase-adminsdk*.json
 
 # typescript

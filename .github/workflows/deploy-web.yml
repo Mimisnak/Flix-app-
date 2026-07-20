@@ -29,8 +29,12 @@ jobs:
       - name: Export static web build
         run: npx expo export --platform web
         env:
-          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          # app.config.js reads PROD_SUPABASE_* (APP_VARIANT defaults to
+          # production when unset, which it is here) — same underlying
+          # secret values as before, just renamed to match the new
+          # multi-environment config. See src/lib/supabase.ts.
+          PROD_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          PROD_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Point custom domain at this build
         run: echo "sverkos.net" > dist/CNAME

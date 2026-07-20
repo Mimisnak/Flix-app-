@@ -1,10 +1,15 @@
 import 'react-native-url-polyfill/auto';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+// Resolved by app.config.js from PROD_SUPABASE_* or DEV_SUPABASE_* (picked
+// via APP_VARIANT at prebuild/bundle time) — not read from process.env
+// directly here, since which pair applies depends on which app variant
+// (production vs dev) produced this build, not just dev-vs-prod JS mode.
+const supabaseUrl = Constants.expoConfig!.extra!.supabaseUrl as string;
+const supabaseAnonKey = Constants.expoConfig!.extra!.supabaseAnonKey as string;
 
 // Captured BEFORE createClient() runs. With detectSessionInUrl on, the
 // client asynchronously parses (and then strips) the recovery tokens out
