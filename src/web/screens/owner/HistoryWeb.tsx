@@ -82,6 +82,15 @@ export default function HistoryWeb() {
 
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
+  // Staff-only per RLS ("Only staff can delete orders") — for cleaning up
+  // test orders after a solo test run, without leaving them cluttering the
+  // real history forever. Mirrors screens/owner/OwnerHistoryScreen.tsx.
+  async function deleteOrder(id: string) {
+    if (!window.confirm('Θέλεις σίγουρα να διαγράψεις οριστικά αυτή την παραγγελία;')) return;
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) window.alert(error.message);
+  }
+
   useEffect(() => {
     const channel = supabase
       .channel('web-owner-history')
@@ -163,6 +172,19 @@ export default function HistoryWeb() {
       cell: info => info.getValue()
         ? <span style={{ color: '#EF4444', fontSize: 12 }}>{info.getValue()}</span>
         : <span style={{ color: colors.textSecondary }}>—</span>,
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <button
+          onClick={(e) => { e.stopPropagation(); deleteOrder(row.original.id); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 15 }}
+          title="Διαγραφή"
+        >
+          🗑️
+        </button>
+      ),
     }),
   ], []);
 
@@ -279,7 +301,16 @@ export default function HistoryWeb() {
                 <div key={o.id} style={cardStyles.card} onClick={() => setSelectedOrder(o)}>
                   <div style={cardStyles.row}>
                     <span style={cardStyles.title}>{o.street}</span>
-                    <StatusBadge status={o.status} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <StatusBadge status={o.status} />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteOrder(o.id); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, padding: 0 }}
+                        title="Διαγραφή"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                   <div style={cardStyles.detail}>{o.shop_name}</div>
                   {o.customer_name && <div style={cardStyles.detail}>{o.customer_name}</div>}
@@ -316,7 +347,7 @@ export default function HistoryWeb() {
           <tbody>
             {table.getRowModel().rows.length === 0 && !loading ? (
               <tr>
-                <td colSpan={9} style={{ ...s.td, textAlign: 'center', color: colors.textSecondary, padding: 40 }}>
+                <td colSpan={10} style={{ ...s.td, textAlign: 'center', color: colors.textSecondary, padding: 40 }}>
                   Δεν βρέθηκαν παραγγελίες για αυτό το φίλτρο
                 </td>
               </tr>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Text from '../../components/AppText';
 import { Order } from '../../types';
 import { Colors } from '../../constants/colors';
 import {
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
     width: '88%', maxHeight: '80%', borderWidth: 1, borderColor: Colors.border,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  street: { fontSize: 17, fontWeight: 'bold', color: Colors.textPrimary, flex: 1, marginRight: 8 },
+  street: { fontSize: 19, fontWeight: 'bold', color: Colors.textPrimary, flex: 1, marginRight: 8 },
   closeBtn: { padding: 4 },
   closeText: { color: Colors.textSecondary, fontSize: 16, fontWeight: 'bold' },
   meta: { color: Colors.textSecondary, fontSize: 13, marginTop: 8 },

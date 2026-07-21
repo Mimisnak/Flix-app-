@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, Modal, StyleSheet,
-  Text, TextInput, TouchableOpacity, View,
+  TextInput, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../../components/AppText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
   },
   ownerBadgeText: { color: Colors.primary, fontSize: 11, fontWeight: '700' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  street: { fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 8, color: Colors.textPrimary },
+  street: { fontSize: 18, fontWeight: 'bold', flex: 1, marginRight: 8, color: Colors.textPrimary },
   badge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
   badgePending: { backgroundColor: 'rgba(245, 158, 11, 0.15)' },
   badgeAssigned: { backgroundColor: 'rgba(58, 158, 251, 0.15)' },

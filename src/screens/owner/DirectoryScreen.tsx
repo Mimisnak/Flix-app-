@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, AppState, FlatList, Modal, StyleSheet,
-  Switch, Text, TextInput, TouchableOpacity, View,
+  Switch, TextInput, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../../components/AppText';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { DirectoryEntry } from '../../types';

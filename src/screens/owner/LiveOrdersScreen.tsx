@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Text from '../../components/AppText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
 import { addOrderTimeline } from '../../lib/orderHelpers';
@@ -256,12 +257,12 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 3,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  street: { fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 8, color: Colors.textPrimary },
+  street: { fontSize: 18, fontWeight: 'bold', flex: 1, marginRight: 8, color: Colors.textPrimary },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
   badgePending: { backgroundColor: 'rgba(245, 158, 11, 0.15)' },
   badgeAssigned: { backgroundColor: 'rgba(58, 158, 251, 0.15)' },
   badgeText: { fontSize: 11, fontWeight: '600', color: Colors.textPrimary },
-  detail: { color: Colors.textSecondary, marginTop: 3, fontSize: 13 },
+  detail: { color: Colors.textSecondary, marginTop: 3, fontSize: 15 },
   time: { color: Colors.textMuted, fontSize: 11, marginTop: 6 },
   assignRow: { marginTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 },
   assignLabel: { fontSize: 12, color: Colors.textSecondary, marginBottom: 6 },

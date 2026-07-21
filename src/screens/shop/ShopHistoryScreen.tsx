@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import Text from '../../components/AppText';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { Order } from '../../types';
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center',
     borderWidth: 1, borderColor: Colors.border,
   },
-  street: { fontWeight: 'bold', color: Colors.textPrimary, fontSize: 14 },
+  street: { fontWeight: 'bold', color: Colors.textPrimary, fontSize: 16 },
   meta: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
   deliveryInfo: { color: Colors.success, fontSize: 11, marginTop: 2, fontWeight: '600' },
   ownerBadge: {

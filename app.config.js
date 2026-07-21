@@ -43,6 +43,13 @@ module.exports = {
     android: {
       predictiveBackGestureEnabled: false,
       package: IS_DEV ? 'com.flixfix.app.dev' : 'com.flixfix.app',
+      // Was only ever set manually in the gitignored android/app/build.gradle
+      // after each prebuild — any future prebuild (either variant) would've
+      // silently reset it to 1, and Play Console rejects a production
+      // upload whose versionCode isn't higher than what's already live
+      // (currently 2). Bump this by hand here before every future
+      // production release instead of editing build.gradle post-prebuild.
+      versionCode: 3,
       googleServicesFile: IS_DEV ? './google-services.dev.json' : './google-services.json',
       intentFilters: [
         {
@@ -68,6 +75,10 @@ module.exports = {
       },
       supabaseUrl: IS_DEV ? process.env.DEV_SUPABASE_URL : process.env.PROD_SUPABASE_URL,
       supabaseAnonKey: IS_DEV ? process.env.DEV_SUPABASE_ANON_KEY : process.env.PROD_SUPABASE_ANON_KEY,
+      // Read by DevModeBanner (src/components/DevModeBanner.tsx) to show a
+      // red "DEV MODE" bar — the only in-app cue that a build isn't prod,
+      // since app name/icon aren't visible once you're inside the app.
+      isDev: IS_DEV,
     },
     owner: 'mimisnak',
   },

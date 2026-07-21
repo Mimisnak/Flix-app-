@@ -13,10 +13,10 @@ export const cardStyles: Record<string, React.CSSProperties> = {
     padding: 16,
   },
   row: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 6 },
-  title: { fontSize: 16, fontWeight: 700, color: colors.textPrimary, flex: 1 },
-  detail: { color: colors.textSecondary, fontSize: 13, marginTop: 3 },
+  title: { fontSize: 18, fontWeight: 700, color: colors.textPrimary, flex: 1 },
+  detail: { color: colors.textSecondary, fontSize: 14, marginTop: 3 },
   amount: { color: '#22C55E', fontSize: 14, fontWeight: 700, marginTop: 4 },
-  meta: { color: colors.textMuted, fontSize: 11, marginTop: 6 },
+  meta: { color: colors.textSecondary, fontSize: 14, fontWeight: 600, marginTop: 6 },
   empty: { textAlign: 'center', padding: '48px 16px', color: colors.textSecondary },
   badge: {
     marginTop: 10, padding: 10, borderRadius: 10, textAlign: 'center',

@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, ScrollView, StyleSheet,
-  Text, TouchableOpacity, View,
+  TouchableOpacity, View,
 } from 'react-native';
+import Text from '../../components/AppText';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { Order } from '../../types';
@@ -11,6 +12,23 @@ import { ordersToCsv } from '../../lib/csv';
 import { exportTextFile } from '../../lib/exportFile';
 import { fetchAllPaginated, formatDurationBetween } from '../../lib/orderHelpers';
 import OrderDetailModal from './OrderDetailModal';
+
+// Staff-only per RLS ("Only staff can delete orders") — for cleaning up
+// test orders after doing a solo test run, without leaving them cluttering
+// the real history forever.
+function deleteOrder(id: string) {
+  Alert.alert('Διαγραφή Παραγγελίας', 'Θέλεις σίγουρα να διαγράψεις οριστικά αυτή την παραγγελία;', [
+    { text: 'Ακύρωση', style: 'cancel' },
+    {
+      text: 'Διαγραφή',
+      style: 'destructive',
+      onPress: async () => {
+        const { error } = await supabase.from('orders').delete().eq('id', id);
+        if (error) Alert.alert('Σφάλμα', error.message);
+      },
+    },
+  ]);
+}
 
 function deliveryInfo(item: Order): string | null {
   if (item.status !== 'delivered' || !item.delivered_at) return null;
@@ -264,9 +282,14 @@ export default function OwnerHistoryScreen() {
                   })}
                 </Text>
               </View>
-              <Text style={styles.statusIcon}>
-                {item.status === 'delivered' ? 'Παραδόθηκε' : item.status === 'assigned' ? 'Διαδρομή' : item.status === 'cancelled' ? 'Ακυρώθηκε' : 'Αναμονή'}
-              </Text>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.statusIcon}>
+                  {item.status === 'delivered' ? 'Παραδόθηκε' : item.status === 'assigned' ? 'Διαδρομή' : item.status === 'cancelled' ? 'Ακυρώθηκε' : 'Αναμονή'}
+                </Text>
+                <TouchableOpacity onPress={() => deleteOrder(item.id)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Text style={styles.deleteBtnText}>🗑️</Text>
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
           )}
         />
@@ -317,10 +340,12 @@ const styles = StyleSheet.create({
     borderRadius: 10, padding: 12, flexDirection: 'row', alignItems: 'center',
     borderWidth: 1, borderColor: Colors.border,
   },
-  street: { fontWeight: 'bold', color: Colors.textPrimary, fontSize: 14 },
-  meta: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
+  street: { fontWeight: 'bold', color: Colors.textPrimary, fontSize: 16 },
+  meta: { color: Colors.textSecondary, fontSize: 14, marginTop: 2 },
   amount: { color: Colors.success, fontSize: 12, fontWeight: '700', marginTop: 2 },
   cancelReason: { color: Colors.error, fontSize: 11, marginTop: 2, fontStyle: 'italic' },
   deliveryInfo: { color: Colors.success, fontSize: 11, marginTop: 2, fontWeight: '600' },
   statusIcon: { fontSize: 11, fontWeight: '700', color: Colors.textSecondary, marginLeft: 8 },
+  deleteBtn: { marginTop: 10 },
+  deleteBtnText: { fontSize: 15 },
 });

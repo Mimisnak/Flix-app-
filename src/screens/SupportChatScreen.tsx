@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList, KeyboardAvoidingView, Platform, StyleSheet,
-  Text, TextInput, TouchableOpacity, View,
+  TextInput, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../components/AppText';
 import { supabase } from '../lib/supabase';
 import { Colors } from '../constants/colors';
 import { SupportMessage } from '../types';

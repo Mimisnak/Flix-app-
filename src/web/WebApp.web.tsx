@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './global.css';
 import { supabase } from '../lib/supabase';
 import { requestWebNotificationPermission } from '../lib/webNotify';
+import { useFontScale } from '../lib/fontScale';
 import { colors, SIDEBAR_WIDTH, TOPBAR_HEIGHT } from './theme';
 import { useIsMobile } from './hooks/useIsMobile';
 import Sidebar, { WebScreen } from './components/Sidebar';
@@ -89,6 +90,7 @@ export default function WebApp({ role }: Props) {
   const [activeScreen, setActiveScreen] = useState<WebScreen>(DEFAULT_SCREEN[role]);
   const userIdRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
+  const { scale } = useFontScale();
 
   // Fetch userId once on mount
   useEffect(() => {
@@ -155,7 +157,12 @@ export default function WebApp({ role }: Props) {
             ...s.content,
             paddingTop: TOPBAR_HEIGHT,
             paddingBottom: isMobile ? MOBILE_TABBAR_HEIGHT + 16 : 24,
-          }}
+            // Font-size setting (Ρυθμίσεις / ProfileWeb) scales the whole
+            // screen body via CSS zoom — sidebar/topbar chrome stays fixed
+            // size since they use viewport-relative sizing that would
+            // overflow the fixed 100vw/100dvh app shell if zoomed too.
+            zoom: scale,
+          } as React.CSSProperties}
         >
           {renderScreen(activeScreen, role)}
         </div>

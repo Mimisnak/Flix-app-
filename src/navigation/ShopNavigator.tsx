@@ -10,6 +10,7 @@ import MapScreen from '../screens/owner/MapScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SupportChatScreen from '../screens/SupportChatScreen';
 import HelpScreen from '../screens/HelpScreen';
+import AppUpdatesScreen from '../screens/AppUpdatesScreen';
 import BetaBadge from '../components/BetaBadge';
 
 const Tab = createBottomTabNavigator();
@@ -86,6 +87,7 @@ export default function ShopNavigator() {
 
       {/* Hidden from the tab bar, reachable from the Profile screen's link */}
       <Tab.Screen name="Help" component={HelpScreen} options={{ title: 'Οδηγός Χρήσης', ...hidden }} />
+      <Tab.Screen name="AppUpdates" component={AppUpdatesScreen} options={{ title: 'Νέα της Εφαρμογής', ...hidden }} />
     </Tab.Navigator>
   );
 }

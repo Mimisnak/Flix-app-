@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert, KeyboardAvoidingView, Platform, ScrollView,
-  StyleSheet, Text, TextInput, TouchableOpacity, View,
+  StyleSheet, TextInput, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../components/AppText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -10,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { Colors } from '../constants/colors';
 import { validateName } from '../lib/validateName';
+import { useFontScale, FONT_SCALE_PRESETS, FONT_SCALE_LABELS, FontScaleKey } from '../lib/fontScale';
 
 const ROLE_LABELS: Record<string, string> = {
   shop: 'Μαγαζί',
@@ -21,6 +23,7 @@ const ROLE_LABELS: Record<string, string> = {
 export default function ProfileScreen() {
   const headerHeight = useHeaderHeight();
   const navigation = useNavigation<any>();
+  const { scaleKey, setScaleKey } = useFontScale();
   const [role, setRole] = useState<string>('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -196,6 +199,41 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Μέγεθος Γραμματοσειράς</Text>
+          <View style={styles.fontScaleRow}>
+            {(Object.keys(FONT_SCALE_PRESETS) as FontScaleKey[]).map((key) => (
+              <TouchableOpacity
+                key={key}
+                style={[styles.fontScaleChip, scaleKey === key && styles.fontScaleChipActive]}
+                onPress={() => setScaleKey(key)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.fontScaleChipText,
+                    { fontSize: 13 * FONT_SCALE_PRESETS[key] },
+                    scaleKey === key && styles.fontScaleChipTextActive,
+                  ]}
+                >
+                  Αα
+                </Text>
+                <Text style={[styles.fontScaleChipLabel, scaleKey === key && styles.fontScaleChipTextActive]}>
+                  {FONT_SCALE_LABELS[key]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.helpBtn}
+          onPress={() => navigation.navigate('AppUpdates')}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.helpText}>Νέα της Εφαρμογής</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.helpBtn}
           onPress={() => navigation.navigate('Help')}
@@ -245,6 +283,16 @@ const styles = StyleSheet.create({
   btnSecondary: { backgroundColor: Colors.purple },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  fontScaleRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  fontScaleChip: {
+    flex: 1, minWidth: 70, alignItems: 'center', paddingVertical: 10,
+    borderRadius: 10, borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.surfaceAlt,
+  },
+  fontScaleChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryHover },
+  fontScaleChipText: { color: Colors.textPrimary, fontWeight: 'bold' },
+  fontScaleChipLabel: { color: Colors.textSecondary, fontSize: 11, marginTop: 4 },
+  fontScaleChipTextActive: { color: Colors.primary },
   helpBtn: {
     marginHorizontal: 12, marginTop: 16, padding: 14, borderRadius: 10,
     alignItems: 'center', borderWidth: 1, borderColor: Colors.border,

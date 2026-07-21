@@ -234,6 +234,9 @@ export default function AvailableOrdersWeb() {
               const busy = takingId === item.id;
               return (
                 <div key={item.id} style={cardStyles.card}>
+                  <div style={{ color: colors.primary, fontSize: 14, fontWeight: 700, marginBottom: 4 }}>
+                    {(item as any).shops?.name ?? '—'}
+                  </div>
                   <div style={cardStyles.row}>
                     <span style={cardStyles.title}>{item.street}</span>
                     <span style={{ color: colors.textSecondary, fontSize: 12, whiteSpace: 'nowrap' }}>
@@ -243,7 +246,6 @@ export default function AvailableOrdersWeb() {
                   {item.customer_name && <div style={cardStyles.detail}>{item.customer_name}</div>}
                   {item.phone && <div style={cardStyles.detail}>{item.phone}</div>}
                   {item.amount != null && <div style={cardStyles.amount}>{item.amount.toFixed(2)}€</div>}
-                  <div style={cardStyles.meta}>{(item as any).shops?.name ?? '—'}</div>
                   {takenByOther ? (
                     <div style={{ ...cardStyles.badge, background: 'rgba(148,163,184,0.12)', color: colors.textSecondary }}>
                       Την έχει ο {(item as any).drivers?.name ?? 'άλλος οδηγός'}

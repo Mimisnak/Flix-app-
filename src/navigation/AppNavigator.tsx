@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { supabase, isPasswordRecoveryLink } from '../lib/supabase';
 import { registrationGuard } from '../lib/registrationGuard';
 import { alert } from '../lib/alert';
+import { storage } from '../lib/storage';
 import { registerPushToken } from '../lib/notifications';
 import { isRememberMeDisabled } from '../lib/rememberMe';
 import { useIdleTimeout } from '../lib/useIdleTimeout';
@@ -17,6 +18,7 @@ import OwnerNavigator from './OwnerNavigator';
 import ShopNavigator from './ShopNavigator';
 import DriverNavigator from './DriverNavigator';
 import DeveloperNavigator from './DeveloperNavigator';
+import NewAnnouncementModal from '../components/NewAnnouncementModal';
 // Metro picks WebApp.web.tsx on web and WebApp.tsx (null stub) on native
 import WebApp from '../web/WebApp';
 
@@ -31,6 +33,8 @@ type AppScreen = 'splash' | 'auth' | 'owner' | 'shop' | 'driver' | 'developer' |
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 
+const LAST_SEEN_ANNOUNCEMENT_KEY = 'flixfix_last_seen_announcement';
+
 export default function AppNavigator() {
   // isPasswordRecoveryLink is read from the URL at module-load time (see
   // src/lib/supabase.ts) — using it directly as the initial state, rather
@@ -38,6 +42,10 @@ export default function AppNavigator() {
   // already shows the recovery screen with no async race to lose.
   const [screen, setScreen] = useState<AppScreen>(isPasswordRecoveryLink ? 'recovery' : 'splash');
   const [authInitialRoute, setAuthInitialRoute] = useState<keyof AuthStackParamList>('Welcome');
+  // Shown via NewAnnouncementModal — not marked "seen" (storage write) until
+  // the user actually dismisses it, so if the app is killed mid-display it
+  // shows again next open rather than being silently missed.
+  const [announcement, setAnnouncement] = useState<{ id: string; message: string } | null>(null);
   const currentUserIdRef = useRef<string | null>(null);
   const currentRoleRef = useRef<AppScreen>('splash');
   // Set as soon as a PASSWORD_RECOVERY session is detected, so the SIGNED_IN
@@ -81,6 +89,29 @@ export default function AppNavigator() {
     });
 
     return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // Realtime companion to checkForNewAnnouncement() below — that one only
+  // catches up on login/app-open, so anyone already inside the app when the
+  // developer posts a new announcement would otherwise not see it until
+  // their next login. Only pops it if someone's actually signed in
+  // (currentUserIdRef set) — a row inserted while sitting on the login
+  // screen shouldn't interrupt that.
+  useEffect(() => {
+    const channel = supabase
+      .channel('app-announcements-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'app_announcements' },
+        (payload) => {
+          if (!currentUserIdRef.current) return;
+          const row = payload.new as { id: string; message: string };
+          setAnnouncement({ id: row.id, message: row.message });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // Native deep-link handling for the "forgot password" email link — the
@@ -180,6 +211,39 @@ export default function AppNavigator() {
     currentRoleRef.current = data.role as AppScreen;
     setScreen(data.role as AppScreen);
     registerPushToken();
+    checkForNewAnnouncement();
+  }
+
+  // Pops the newest "Νέα της Εφαρμογής" entry the moment the app opens, once
+  // per new announcement per ACCOUNT — keyed by user id, not just device, so
+  // two different accounts signed into the same physical device each get
+  // their own "have I seen this one" state instead of one dismissing it for
+  // everyone on that phone. Works on native and web since this whole
+  // component tree renders on both (react-native-web supports Modal). The
+  // realtime subscription above covers the case where the app is already
+  // open when a new one gets posted; this one covers login/app-open.
+  async function checkForNewAnnouncement() {
+    const userId = currentUserIdRef.current;
+    if (!userId) return;
+
+    const { data } = await supabase
+      .from('app_announcements')
+      .select('id, message')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) return;
+
+    const lastSeenId = await storage.getItem(`${LAST_SEEN_ANNOUNCEMENT_KEY}_${userId}`);
+    if (lastSeenId === data.id) return;
+
+    setAnnouncement({ id: data.id, message: data.message });
+  }
+
+  function dismissAnnouncement() {
+    const userId = currentUserIdRef.current;
+    if (announcement && userId) storage.setItem(`${LAST_SEEN_ANNOUNCEMENT_KEY}_${userId}`, announcement.id);
+    setAnnouncement(null);
   }
 
   // Called once the user has set a new password from UpdatePasswordScreen —
@@ -189,16 +253,14 @@ export default function AppNavigator() {
     await supabase.auth.signOut();
   }
 
+  let content: React.ReactNode = null;
+
   if (screen === 'splash') {
-    return <SplashScreen onFinish={handleSplashFinish} />;
-  }
-
-  if (screen === 'recovery') {
-    return <UpdatePasswordScreen onDone={handleRecoveryDone} />;
-  }
-
-  if (screen === 'auth') {
-    return (
+    content = <SplashScreen onFinish={handleSplashFinish} />;
+  } else if (screen === 'recovery') {
+    content = <UpdatePasswordScreen onDone={handleRecoveryDone} />;
+  } else if (screen === 'auth') {
+    content = (
       <AuthStack.Navigator initialRouteName={authInitialRoute} screenOptions={{ headerShown: false }}>
         <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
         <AuthStack.Screen name="Login" component={LoginScreen} />
@@ -206,32 +268,32 @@ export default function AppNavigator() {
         <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       </AuthStack.Navigator>
     );
-  }
-
-  if (screen === 'owner') {
-    if (Platform.OS === 'web') return <WebApp role="owner" />;
-    return <OwnerNavigator />;
-  }
-  if (screen === 'shop') {
-    if (Platform.OS === 'web') return <WebApp role="shop" />;
-    return (
+  } else if (screen === 'owner') {
+    content = Platform.OS === 'web' ? <WebApp role="owner" /> : <OwnerNavigator />;
+  } else if (screen === 'shop') {
+    content = Platform.OS === 'web' ? <WebApp role="shop" /> : (
       <View style={{ flex: 1 }} onTouchStart={resetActivity} onTouchMove={resetActivity}>
         <ShopNavigator />
       </View>
     );
-  }
-  if (screen === 'driver') {
-    if (Platform.OS === 'web') return <WebApp role="driver" />;
-    return (
+  } else if (screen === 'driver') {
+    content = Platform.OS === 'web' ? <WebApp role="driver" /> : (
       <View style={{ flex: 1 }} onTouchStart={resetActivity} onTouchMove={resetActivity}>
         <DriverNavigator />
       </View>
     );
-  }
-  if (screen === 'developer') {
-    if (Platform.OS === 'web') return <WebApp role="developer" />;
-    return <DeveloperNavigator />;
+  } else if (screen === 'developer') {
+    content = Platform.OS === 'web' ? <WebApp role="developer" /> : <DeveloperNavigator />;
   }
 
-  return null;
+  return (
+    <>
+      {content}
+      <NewAnnouncementModal
+        visible={!!announcement}
+        message={announcement?.message ?? ''}
+        onClose={dismissAnnouncement}
+      />
+    </>
+  );
 }

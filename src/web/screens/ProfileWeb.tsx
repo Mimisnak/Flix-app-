@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../theme';
 import { validateName } from '../../lib/validateName';
+import { useFontScale, FONT_SCALE_PRESETS, FONT_SCALE_LABELS, FontScaleKey } from '../../lib/fontScale';
 
 const ROLE_LABELS: Record<string, string> = {
   shop: 'Μαγαζί',
@@ -10,11 +11,18 @@ const ROLE_LABELS: Record<string, string> = {
   developer: 'Developer',
 };
 
+interface Announcement {
+  id: string;
+  message: string;
+  created_at: string;
+}
+
 interface Props {
   role: 'owner' | 'shop' | 'driver' | 'developer';
 }
 
 export default function ProfileWeb({ role }: Props) {
+  const { scaleKey, setScaleKey } = useFontScale();
   const [userId, setUserId] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -24,10 +32,40 @@ export default function ProfileWeb({ role }: Props) {
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [newAnnouncement, setNewAnnouncement] = useState('');
+  const [postingAnnouncement, setPostingAnnouncement] = useState(false);
 
   const hasEditableProfile = role === 'shop' || role === 'driver';
 
-  useEffect(() => { loadProfile(); }, []);
+  useEffect(() => { loadProfile(); loadAnnouncements(); }, []);
+
+  async function loadAnnouncements() {
+    const { data } = await supabase
+      .from('app_announcements')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setAnnouncements((data as any) ?? []);
+  }
+
+  async function postAnnouncement() {
+    if (!newAnnouncement.trim()) return;
+    setPostingAnnouncement(true);
+    const { error } = await supabase.from('app_announcements').insert({ message: newAnnouncement.trim() });
+    setPostingAnnouncement(false);
+    if (error) {
+      window.alert(error.message);
+      return;
+    }
+    setNewAnnouncement('');
+    loadAnnouncements();
+  }
+
+  async function deleteAnnouncement(id: string) {
+    if (!window.confirm('Θέλεις σίγουρα να διαγράψεις αυτή την ειδοποίηση;')) return;
+    await supabase.from('app_announcements').delete().eq('id', id);
+    loadAnnouncements();
+  }
 
   async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -150,6 +188,77 @@ export default function ProfileWeb({ role }: Props) {
         </button>
       </div>
 
+      {/* Font size */}
+      <div style={s.section}>
+        <h3 style={s.sectionTitle}>Μέγεθος Γραμματοσειράς</h3>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {(Object.keys(FONT_SCALE_PRESETS) as FontScaleKey[]).map((key) => (
+            <button
+              key={key}
+              onClick={() => setScaleKey(key)}
+              style={{
+                ...s.fontScaleChip,
+                ...(scaleKey === key ? s.fontScaleChipActive : {}),
+              }}
+            >
+              <span style={{ fontSize: 13 * FONT_SCALE_PRESETS[key], fontWeight: 700, color: scaleKey === key ? colors.primary : colors.textPrimary }}>
+                Αα
+              </span>
+              <span style={{ fontSize: 11, color: scaleKey === key ? colors.primary : colors.textSecondary }}>
+                {FONT_SCALE_LABELS[key]}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* App announcements */}
+      <div style={s.section}>
+        <h3 style={s.sectionTitle}>Νέα της Εφαρμογής</h3>
+
+        {role === 'developer' && (
+          <div style={{ marginBottom: 14 }}>
+            <textarea
+              style={{ ...s.input, minHeight: 70, resize: 'vertical', fontFamily: 'inherit' }}
+              value={newAnnouncement}
+              onChange={e => setNewAnnouncement(e.target.value)}
+              placeholder="Τι νέο υπάρχει στην εφαρμογή;"
+            />
+            <button
+              onClick={postAnnouncement}
+              disabled={postingAnnouncement || !newAnnouncement.trim()}
+              style={{ ...s.btn, background: colors.primary, opacity: (postingAnnouncement || !newAnnouncement.trim()) ? 0.6 : 1 }}
+            >
+              {postingAnnouncement ? 'Δημοσίευση...' : 'Δημοσίευση'}
+            </button>
+          </div>
+        )}
+
+        {announcements.length === 0 ? (
+          <p style={{ color: colors.textSecondary, fontSize: 13, margin: 0 }}>Δεν υπάρχουν ειδοποιήσεις ακόμα.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {announcements.map(a => (
+              <div key={a.id} style={{ position: 'relative', background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: 10, padding: '10px 14px' }}>
+                <div style={{ color: colors.textPrimary, fontSize: 14, lineHeight: 1.5, paddingRight: role === 'developer' ? 24 : 0 }}>{a.message}</div>
+                <div style={{ color: colors.textSecondary, fontSize: 11, marginTop: 6 }}>
+                  {new Date(a.created_at).toLocaleDateString('el-GR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
+                {role === 'developer' && (
+                  <button
+                    onClick={() => deleteAnnouncement(a.id)}
+                    style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}
+                    title="Διαγραφή"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Sign out */}
       <button
         onClick={handleSignOut}
@@ -233,6 +342,23 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 700,
     cursor: 'pointer',
+  },
+  fontScaleChip: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+    minWidth: 70,
+    padding: '10px 0',
+    borderRadius: 10,
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    cursor: 'pointer',
+  },
+  fontScaleChipActive: {
+    borderColor: colors.primary,
+    background: colors.primaryHover,
   },
   signOutBtn: {
     padding: '12px 0',

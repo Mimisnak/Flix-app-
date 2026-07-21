@@ -140,12 +140,14 @@ export default function DriverHistoryWeb() {
                 : null;
               return (
                 <div key={o.id} style={cardStyles.card}>
+                  <div style={{ color: colors.primary, fontSize: 14, fontWeight: 700, marginBottom: 4 }}>
+                    {(o as any).shops?.name ?? '—'}
+                  </div>
                   <div style={cardStyles.row}>
                     <span style={cardStyles.title}>{o.street}</span>
                     <StatusBadge status={o.status} />
                   </div>
                   {o.customer_name && <div style={cardStyles.detail}>{o.customer_name}</div>}
-                  <div style={cardStyles.meta}>{(o as any).shops?.name ?? '—'}</div>
                   {delivery && (
                     <div style={{ color: '#22C55E', marginTop: 4, fontSize: 12, fontWeight: 600 }}>
                       {delivery.time} · διάρκεια {delivery.duration}

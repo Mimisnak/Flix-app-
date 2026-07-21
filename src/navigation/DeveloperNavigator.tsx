@@ -10,6 +10,7 @@ import OwnerHistoryScreen from '../screens/owner/OwnerHistoryScreen';
 import MoreScreen from '../screens/developer/MoreScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HelpScreen from '../screens/HelpScreen';
+import AppUpdatesScreen from '../screens/AppUpdatesScreen';
 import BetaBadge from '../components/BetaBadge';
 
 const Tab = createBottomTabNavigator();
@@ -78,6 +79,7 @@ export default function DeveloperNavigator() {
       <Tab.Screen name="DevStats" component={StatsScreen} options={{ title: 'Στατιστικά', ...hidden }} />
       <Tab.Screen name="DevProfile" component={ProfileScreen} options={{ title: 'Προφίλ', ...hidden }} />
       <Tab.Screen name="Help" component={HelpScreen} options={{ title: 'Οδηγός Χρήσης', ...hidden }} />
+      <Tab.Screen name="AppUpdates" component={AppUpdatesScreen} options={{ title: 'Νέα της Εφαρμογής', ...hidden }} />
     </Tab.Navigator>
   );
 }

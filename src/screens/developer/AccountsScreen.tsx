@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, Modal, StyleSheet,
-  Text, TextInput, TouchableOpacity, View,
+  TextInput, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../../components/AppText';
 import { supabase } from '../../lib/supabase';
 import { Colors } from '../../constants/colors';
 import { AccountEntry, UserRole } from '../../types';

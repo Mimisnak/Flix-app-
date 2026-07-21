@@ -1,6 +1,9 @@
 import React from 'react';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
+import DevModeBanner from './src/components/DevModeBanner';
+import { FontScaleProvider } from './src/lib/fontScale';
 
 const NAV_THEME = {
   dark: true,
@@ -22,8 +25,13 @@ const NAV_THEME = {
 
 export default function App() {
   return (
-    <NavigationContainer theme={NAV_THEME}>
-      <AppNavigator />
-    </NavigationContainer>
+    <FontScaleProvider>
+      <View style={{ flex: 1, backgroundColor: NAV_THEME.colors.background }}>
+        <DevModeBanner />
+        <NavigationContainer theme={NAV_THEME}>
+          <AppNavigator />
+        </NavigationContainer>
+      </View>
+    </FontScaleProvider>
   );
 }

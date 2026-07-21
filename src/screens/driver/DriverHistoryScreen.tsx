@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import Text from '../../components/AppText';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { Order } from '../../types';
@@ -101,9 +102,9 @@ export default function DriverHistoryScreen() {
           renderItem={({ item }) => (
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
+                <Text style={styles.shop}>{(item as any).shops?.name ?? '—'}</Text>
                 <Text style={styles.street}>{item.street}</Text>
                 {item.customer_name ? <Text style={styles.meta}>{item.customer_name}</Text> : null}
-                <Text style={styles.meta}>{(item as any).shops?.name ?? '—'}</Text>
                 {deliveryInfo(item) && (
                   <Text style={styles.deliveryInfo}>{deliveryInfo(item)}</Text>
                 )}
@@ -144,8 +145,9 @@ const styles = StyleSheet.create({
     borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center',
     borderWidth: 1, borderColor: Colors.border,
   },
-  street: { fontWeight: 'bold', color: Colors.textPrimary, fontSize: 14 },
-  meta: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
+  shop: { color: Colors.primary, fontSize: 13, fontWeight: '700', marginBottom: 2 },
+  street: { fontWeight: 'bold', color: Colors.textPrimary, fontSize: 16 },
+  meta: { color: Colors.textSecondary, fontSize: 14, marginTop: 2 },
   deliveryInfo: { color: Colors.success, fontSize: 11, marginTop: 2, fontWeight: '600' },
   cancelReason: { color: Colors.error, fontSize: 11, marginTop: 2, fontStyle: 'italic' },
   statusIcon: { fontSize: 11, fontWeight: '700', color: Colors.textSecondary, marginLeft: 8 },

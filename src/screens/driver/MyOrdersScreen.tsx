@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, Modal, StyleSheet,
-  Text, TextInput, TouchableOpacity, View,
+  TextInput, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../../components/AppText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
 import { sendPushToUsers } from '../../lib/notifications';
@@ -121,6 +122,7 @@ export default function MyOrdersScreen() {
 
   const renderItem = useCallback(({ item }: { item: Order }) => (
     <View style={styles.card}>
+      <Text style={styles.shop}>{(item as any).shops?.name}</Text>
       <Text style={styles.street}>{item.street}</Text>
       {item.customer_name ? <Text style={styles.detail}>{item.customer_name}</Text> : null}
       {item.phone ? <Text style={styles.detail}>{item.phone}</Text> : null}
@@ -128,7 +130,6 @@ export default function MyOrdersScreen() {
       {item.floor ? <Text style={styles.detail}>Όροφος {item.floor}</Text> : null}
       {item.notes ? <Text style={styles.detail}>{item.notes}</Text> : null}
       {item.amount != null ? <Text style={styles.amount}>{item.amount.toFixed(2)}€</Text> : null}
-      <Text style={styles.shop}>{(item as any).shops?.name}</Text>
       <TouchableOpacity style={styles.completeBtn} onPress={() => completeOrder(item.id)}>
         <Text style={styles.completeBtnText}>✅ Ολοκλήρωση Παράδοσης</Text>
       </TouchableOpacity>
@@ -235,10 +236,10 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border,
     shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 3,
   },
-  street: { fontSize: 17, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 8 },
+  shop: { color: Colors.primary, marginBottom: 4, fontSize: 15, fontWeight: '700' },
+  street: { fontSize: 19, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 8 },
   detail: { color: Colors.textSecondary, marginTop: 3, fontSize: 13 },
   amount: { color: Colors.success, marginTop: 4, fontSize: 14, fontWeight: '700' },
-  shop: { color: Colors.textMuted, marginTop: 6, fontSize: 12 },
   completeBtn: {
     backgroundColor: Colors.success, padding: 14, borderRadius: 12,
     alignItems: 'center', marginTop: 12,

@@ -184,13 +184,15 @@ export default function MyOrdersWeb() {
               const busy = completingId === item.id;
               return (
                 <div key={item.id} style={cardStyles.card}>
+                  <div style={{ color: colors.primary, fontSize: 14, fontWeight: 700, marginBottom: 4 }}>
+                    {(item as any).shops?.name ?? '—'}
+                  </div>
                   <div style={cardStyles.row}>
                     <span style={cardStyles.title}>{item.street}</span>
                   </div>
                   {item.customer_name && <div style={cardStyles.detail}>{item.customer_name}</div>}
                   {item.phone && <div style={cardStyles.detail}>{item.phone}</div>}
                   {item.amount != null && <div style={cardStyles.amount}>{item.amount.toFixed(2)}€</div>}
-                  <div style={cardStyles.meta}>{(item as any).shops?.name ?? '—'}</div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                     <button
                       onClick={() => completeOrder(item.id, item.shop_id)}

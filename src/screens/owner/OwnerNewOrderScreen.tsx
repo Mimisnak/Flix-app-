@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert, KeyboardAvoidingView, Platform, ScrollView,
-  StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
+  StyleSheet, Switch, TextInput, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../../components/AppText';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { sendPushToOnlineDrivers } from '../../lib/notifications';

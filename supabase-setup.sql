@@ -1075,5 +1075,42 @@ CREATE POLICY "Orders are editable by their shop, driver, browsing drivers, or s
 
 
 -- ============================================================
+-- STEP 26: App announcements — a "what's new" feed the developer writes to,
+-- shown to every account in Profile → Νέα της Εφαρμογής. Lets the
+-- developer tell users a new version is out / what changed, without
+-- needing a push notification or store listing for every small update.
+-- Native-only feature (not shown on the web dashboard).
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS app_announcements (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  message    TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE app_announcements ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone authenticated can read announcements" ON app_announcements;
+DROP POLICY IF EXISTS "Only developer can manage announcements"     ON app_announcements;
+
+CREATE POLICY "Anyone authenticated can read announcements"
+  ON app_announcements FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Only developer can manage announcements"
+  ON app_announcements FOR ALL USING (public.is_developer())
+  WITH CHECK (public.is_developer());
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'app_announcements'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE app_announcements;
+  END IF;
+END $$;
+
+
+-- ============================================================
 -- END
 -- ============================================================

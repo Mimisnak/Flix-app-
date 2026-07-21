@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Text from '../../components/AppText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
 import { sendPushToUsers } from '../../lib/notifications';
@@ -106,6 +107,7 @@ export default function AvailableOrdersScreen() {
     const takenByOther = item.status === 'assigned' && item.driver_id !== userId;
     return (
       <View style={[styles.card, takenByOther && styles.cardTaken]}>
+        <Text style={styles.shop}>{(item as any).shops?.name}</Text>
         <Text style={styles.street}>{item.street}</Text>
         {item.customer_name ? <Text style={styles.detail}>{item.customer_name}</Text> : null}
         {item.phone ? <Text style={styles.detail}>{item.phone}</Text> : null}
@@ -113,7 +115,6 @@ export default function AvailableOrdersScreen() {
         {item.floor ? <Text style={styles.detail}>Όροφος {item.floor}</Text> : null}
         {item.notes ? <Text style={styles.detail}>{item.notes}</Text> : null}
         {item.amount != null ? <Text style={styles.amount}>{item.amount.toFixed(2)}€</Text> : null}
-        <Text style={styles.shop}>{(item as any).shops?.name}</Text>
         <Text style={styles.time}>
           {new Date(item.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
         </Text>
@@ -208,9 +209,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(58, 158, 251, 0.12)', borderWidth: 1, borderColor: Colors.primary,
   },
   takenBadgeMineText: { color: Colors.primary, fontWeight: '600', fontSize: 13 },
-  street: { fontSize: 17, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 8 },
+  street: { fontSize: 19, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 8 },
   detail: { color: Colors.textSecondary, marginTop: 3, fontSize: 13 },
-  shop: { color: Colors.textMuted, marginTop: 6, fontSize: 12 },
+  shop: { color: Colors.primary, marginBottom: 4, fontSize: 15, fontWeight: '700' },
   amount: { color: Colors.success, marginTop: 4, fontSize: 14, fontWeight: '700' },
   time: { color: Colors.textMuted, fontSize: 11, marginTop: 4 },
   takeBtn: {

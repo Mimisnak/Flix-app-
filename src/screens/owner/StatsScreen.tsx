@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, FlatList, RefreshControl,
-  ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  ScrollView, StyleSheet, TouchableOpacity, View,
 } from 'react-native';
+import Text from '../../components/AppText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
 import { Colors } from '../../constants/colors';
@@ -206,7 +207,7 @@ export default function StatsScreen() {
             ) : (
               shopStats.map((s, idx) => (
                 <View key={s.id} style={styles.shopRow}>
-                  <Text style={styles.shopName}>{s.name}</Text>
+                  <Text style={styles.shopName} numberOfLines={1} ellipsizeMode="tail">{s.name}</Text>
                   <View style={styles.shopBar}>
                     <View
                       style={[
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  shopName: { width: 90, fontSize: 13, fontWeight: '500', color: Colors.textSecondary },
+  shopName: { width: 90, fontSize: 14, fontWeight: '500', color: Colors.textSecondary },
   shopBar: { flex: 1, height: 8, backgroundColor: Colors.surfaceAlt, borderRadius: 4, overflow: 'hidden' },
   shopBarFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 4 },
   shopCount: { width: 28, textAlign: 'right', fontSize: 13, fontWeight: 'bold', color: Colors.textPrimary },
